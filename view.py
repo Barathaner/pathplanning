@@ -1,32 +1,48 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QLabel, QPushButton, QApplication, QMainWindow, QGraphicsScene, QGraphicsView
+from PyQt5.QtWidgets import (
+    QDialog,
+    QVBoxLayout,
+    QLineEdit,
+    QLabel,
+    QPushButton,
+    QApplication,
+    QMainWindow,
+    QGraphicsScene,
+    QGraphicsView,
+)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPolygonF, QPen, QColor
+
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton
+
 
 class NumbersInputDialog(QDialog):
     def __init__(self, parent=None):
         super(NumbersInputDialog, self).__init__(parent)
 
-        self.setWindowTitle('Zahlen eingeben')
+        self.setWindowTitle("Agent-Infos")
 
         self.layout = QVBoxLayout(self)
 
-        # Labels und LineEdits für die Zahlen
+        # Labels und LineEdits für die Eingaben
+        input_labels = ["Width:", "Height:", "X-Position:", "Y-Position:"]
         self.lineEdits = []
-        for i in range(5):
-            self.layout.addWidget(QLabel(f'Zahl {i + 1}:'))
+
+        for label_text in input_labels:
+            self.layout.addWidget(QLabel(label_text))
             lineEdit = QLineEdit(self)
             self.lineEdits.append(lineEdit)
             self.layout.addWidget(lineEdit)
 
         # OK und Cancel Buttons
-        self.buttons = QPushButton('OK', self)
+        self.buttons = QPushButton("OK", self)
         self.buttons.clicked.connect(self.accept)
         self.layout.addWidget(self.buttons)
 
         self.setLayout(self.layout)
 
-    def getNumbers(self):
+    def getInputs(self):
         return [lineEdit.text() for lineEdit in self.lineEdits]
+
 
 class PolygonView(QMainWindow):
     def __init__(self, controller):
