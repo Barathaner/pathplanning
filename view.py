@@ -26,6 +26,7 @@ class AgentInputDialog(QDialog):
     def getValues(self):
         return [lineEdit.text() for lineEdit in self.lineEdits]
 
+
 class PolygonView(QMainWindow):
     def __init__(self, controller):
         super().__init__()
