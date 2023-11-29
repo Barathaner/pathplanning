@@ -99,4 +99,4 @@ class CoverageView:
         self.draw_polygon()  # oder self.draw_path()
 
         pygame.display.update()
-        self.clock.tick(20)  # Adjust the frames per second as needed
+        self.clock.tick(30)  # Adjust the frames per second as needed

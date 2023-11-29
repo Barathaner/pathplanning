@@ -7,8 +7,8 @@ def main():
     model = CoverageModel()
     view = CoverageView(model)
     controller = CoverageController(model, view)
-    controller.run()
     view.show()
+    controller.run()
 
 
 if __name__ == "__main__":
