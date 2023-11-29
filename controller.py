@@ -40,7 +40,6 @@ class CoverageController:
                     self.first_click_point = (x, y)
                     self.model.add_vertex((x, y))
                     self.view.draw_polygon()
-                    self.view.draw_polygon()
                 else:
                     # Zweiter Klick, überprüfe, ob es sich um den ersten Punkt handelt
                     if (x, y) == self.first_click_point:
@@ -57,3 +56,22 @@ class CoverageController:
     def run(self):
         while True:
             self.handle_events()
+
+
+
+
+    def add_agent(self,w,h, x, y):
+        self.model.add_agent(w,h,x, y)
+        
+
+    def move_agent(self, x, y):
+        self.model.updateAgentPosition(x, y)
+        self.view.show()
+
+    def generate_path(self):
+        self.model.generate_path()
+        self.view.show()
+
+    def plan_agent_path(self):
+        self.model.plan_coverage_path()
+        self.view.showagentpath()
