@@ -1,27 +1,67 @@
-from PyQt5.QtWidgets import (QGraphicsRectItem, QGraphicsScene, QGraphicsView, 
-                             QMainWindow, QApplication, QDialog, QVBoxLayout, 
-                             QLabel, QLineEdit, QPushButton)
+from PyQt5.QtWidgets import (
+    QGraphicsRectItem,
+    QGraphicsScene,
+    QGraphicsView,
+    QMainWindow,
+    QApplication,
+    QDialog,
+    QVBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QMessageBox,
+)
 from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QPolygonF, QPen, QColor
+from PyQt5.QtGui import QPolygonF, QPen, QColor, QIntValidator
+
+
 class AgentInputDialog(QDialog):
     def __init__(self, parent=None):
         super(AgentInputDialog, self).__init__(parent)
-        self.setWindowTitle('Agentendaten eingeben')
+
+        self.setWindowTitle("Agenteninfos")
 
         self.layout = QVBoxLayout(self)
 
-        self.labels = ['Breite', 'Höhe', 'Position X', 'Position Y']
+        # Labels und LineEdits für die Eingaben
+        input_labels = ["Breite:", "Höhe:", "X-Position:", "Y-Position:"]
         self.lineEdits = []
-        for label in self.labels:
-            self.layout.addWidget(QLabel(label))
+
+        for label_text in input_labels:
+            self.layout.addWidget(QLabel(label_text))
             lineEdit = QLineEdit(self)
+
+            # Eingabe auf ganze Zahlen beschränken
+            lineEdit.setValidator(QIntValidator())
+
             self.lineEdits.append(lineEdit)
             self.layout.addWidget(lineEdit)
 
-        self.okButton = QPushButton('OK', self)
-        self.okButton.clicked.connect(self.accept)
-        self.layout.addWidget(self.okButton)
+        # OK und Cancel Buttons
+        self.buttons = QPushButton("OK", self)
+        self.buttons.clicked.connect(
+            self.on_ok_clicked
+        )  # Verbinde mit benutzerdefinierter Methode
+        self.layout.addWidget(self.buttons)
+
         self.setLayout(self.layout)
+
+    def on_ok_clicked(self):
+        inputs = self.getValues()
+
+        # Überprüfe, ob alle Eingabefelder Werte enthalten
+        if all(inputs):
+            try:
+                inputs_as_int = [int(value) for value in inputs]
+                self.accept()  # Schließe das Dialogfenster
+            except ValueError:
+                QMessageBox.warning(
+                    self, "Fehler", "Bitte geben Sie gültige ganze Zahlen ein."
+                )
+        else:
+            QMessageBox.warning(
+                self, "Fehler", "Bitte füllen Sie alle Eingabefelder aus."
+            )
 
     def getValues(self):
         return [lineEdit.text() for lineEdit in self.lineEdits]
@@ -82,12 +122,20 @@ class PolygonView(QMainWindow):
 
 
     def openNumbersDialog(self):
-            dialog = AgentInputDialog(self)
-            if dialog.exec_():
-                values = dialog.getValues()
-                if len(values) == 4:
-                    width, height, x, y = map(float, values)
-                    self.controller.create_agent(width, height, x, y)
+        dialog = AgentInputDialog(self)
+        if dialog.exec_():
+            values = dialog.getValues()
+            if len(values) == 4:
+                width, height, x, y = map(float, values)
+                print("Eingegebene Werte:", width, height, x, y)
+                self.controller.create_agent(width, height, x, y)
+
+    def mousePressEvent(self, event):
+        scenePos = self.view.mapToScene(event.pos())
+
+        x = scenePos.x()
+        y = scenePos.y()
+        self.controller.add_vertex(x, y)
 
     def draw_polygon(self, vertices):
         if self.polygon_item is not None:
@@ -105,7 +153,8 @@ class PolygonView(QMainWindow):
                 # Entferne das alte Agent-Item von der Szene, falls vorhanden
                 self.scene.removeItem(self.agent_item)
 
-            agent_rect = QGraphicsRectItem(agent.position.x(), agent.position.y(), 
-                                           agent.width, agent.height)
+            agent_rect = QGraphicsRectItem(
+                agent.position.x(), agent.position.y(), agent.width, agent.height
+            )
             agent_rect.setPen(QPen(QColor(Qt.blue)))
             self.agent_item = self.scene.addItem(agent_rect)
