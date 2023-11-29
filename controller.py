@@ -8,3 +8,7 @@ class PolygonController:
     def add_vertex(self, x, y):
         self.model.add_vertex(QPointF(x, y))
         self.view.draw_polygon(self.model.get_vertices())
+
+    def create_agent(self, width, height, x, y):
+        self.model.create_agent(width, height, x, y)
+        self.view.draw_agent(self.model.agent)

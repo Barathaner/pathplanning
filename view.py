@@ -1,31 +1,29 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QLabel, QPushButton, QApplication, QMainWindow, QGraphicsScene, QGraphicsView
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QGraphicsRectItem, QGraphicsScene, QGraphicsView, 
+                             QMainWindow, QApplication, QDialog, QVBoxLayout, 
+                             QLabel, QLineEdit, QPushButton)
+from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QPolygonF, QPen, QColor
-
-class NumbersInputDialog(QDialog):
+class AgentInputDialog(QDialog):
     def __init__(self, parent=None):
-        super(NumbersInputDialog, self).__init__(parent)
-
-        self.setWindowTitle('Zahlen eingeben')
+        super(AgentInputDialog, self).__init__(parent)
+        self.setWindowTitle('Agentendaten eingeben')
 
         self.layout = QVBoxLayout(self)
 
-        # Labels und LineEdits für die Zahlen
+        self.labels = ['Breite', 'Höhe', 'Position X', 'Position Y']
         self.lineEdits = []
-        for i in range(5):
-            self.layout.addWidget(QLabel(f'Zahl {i + 1}:'))
+        for label in self.labels:
+            self.layout.addWidget(QLabel(label))
             lineEdit = QLineEdit(self)
             self.lineEdits.append(lineEdit)
             self.layout.addWidget(lineEdit)
 
-        # OK und Cancel Buttons
-        self.buttons = QPushButton('OK', self)
-        self.buttons.clicked.connect(self.accept)
-        self.layout.addWidget(self.buttons)
-
+        self.okButton = QPushButton('OK', self)
+        self.okButton.clicked.connect(self.accept)
+        self.layout.addWidget(self.okButton)
         self.setLayout(self.layout)
 
-    def getNumbers(self):
+    def getValues(self):
         return [lineEdit.text() for lineEdit in self.lineEdits]
 
 class PolygonView(QMainWindow):
@@ -51,11 +49,12 @@ class PolygonView(QMainWindow):
             self.openNumbersDialog()
 
     def openNumbersDialog(self):
-        dialog = NumbersInputDialog(self)
-        if dialog.exec_():
-            numbers = dialog.getNumbers()
-            print(numbers)  # Hier können Sie etwas mit den Zahlen machen
-
+            dialog = AgentInputDialog(self)
+            if dialog.exec_():
+                values = dialog.getValues()
+                if len(values) == 4:
+                    width, height, x, y = map(float, values)
+                    self.controller.create_agent(width, height, x, y)
     def mousePressEvent(self, event):
         scenePos = self.view.mapToScene(event.pos())
 
@@ -71,3 +70,15 @@ class PolygonView(QMainWindow):
 
             pen = QPen(QColor(Qt.red))
             self.scene.addPolygon(polygon, pen)
+
+    def draw_agent(self, agent):
+            # Stelle sicher, dass der Agent existiert
+            if agent is not None:
+                # Erstellen eines Rechtecks zur Darstellung des Agenten
+                agent_rect = QGraphicsRectItem(agent.position.x(), agent.position.y(), 
+                                            agent.width, agent.height)
+                agent_rect.setPen(QPen(QColor(Qt.blue)))
+                self.scene.addItem(agent_rect)
+
+                # Optional: Agenten zentrieren, falls gewünscht
+                self.view.centerOn(agent.position.x(), agent.position.y())
