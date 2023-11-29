@@ -19,12 +19,12 @@ class AgentInputDialog(QDialog):
     def __init__(self, parent=None):
         super(AgentInputDialog, self).__init__(parent)
 
-        self.setWindowTitle("Agenteninfos")
+        self.setWindowTitle("Agent-infos")
 
         self.layout = QVBoxLayout(self)
 
         # Labels und LineEdits für die Eingaben
-        input_labels = ["Breite:", "Höhe:", "X-Position:", "Y-Position:"]
+        input_labels = ["Width:", "Height:", "X-Position:", "Y-Position:"]
         self.lineEdits = []
 
         for label_text in input_labels:
@@ -55,21 +55,23 @@ class AgentInputDialog(QDialog):
                 inputs_as_int = [int(value) for value in inputs]
                 self.accept()  # Schließe das Dialogfenster
             except ValueError:
-                QMessageBox.warning(
-                    self, "Fehler", "Bitte geben Sie gültige ganze Zahlen ein."
-                )
+                QMessageBox.warning(self, "Error", "Please enter valid integers.")
         else:
-            QMessageBox.warning(
-                self, "Fehler", "Bitte füllen Sie alle Eingabefelder aus."
-            )
+            QMessageBox.warning(self, "Error", "Please fill in all input fields.")
 
     def getValues(self):
         return [lineEdit.text() for lineEdit in self.lineEdits]
 
 
-from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QGraphicsLineItem
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QGraphicsScene,
+    QGraphicsView,
+    QGraphicsLineItem,
+)
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QPolygonF, QPen, QColor
+
 
 class PolygonView(QMainWindow):
     def __init__(self, controller):
@@ -109,7 +111,9 @@ class PolygonView(QMainWindow):
     def draw_path(self, path):
         if path:
             for i in range(len(path) - 1):
-                line = QGraphicsLineItem(path[i].x(), path[i].y(), path[i + 1].x(), path[i + 1].y())
+                line = QGraphicsLineItem(
+                    path[i].x(), path[i].y(), path[i + 1].x(), path[i + 1].y()
+                )
                 line.setPen(QPen(QColor(Qt.green), 2))
                 self.scene.addItem(line)
 
@@ -118,8 +122,6 @@ class PolygonView(QMainWindow):
         x = scenePos.x()
         y = scenePos.y()
         self.controller.add_vertex(x, y)
-
-
 
     def openNumbersDialog(self):
         dialog = AgentInputDialog(self)
