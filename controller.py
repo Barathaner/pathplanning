@@ -32,8 +32,6 @@ class CoverageController:
                     sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN and not self.polygon_closed:
                 x, y = event.pos
-                x //= self.view.cell_size
-                y //= self.view.cell_size
 
                 if self.first_click_point is None:
                     # Erster Klick, speichere die Koordinaten

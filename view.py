@@ -25,8 +25,8 @@ class CoverageView:
                 self.screen,
                 (255, 0, 0),
                 (
-                    vertex[0] * self.cell_size + self.cell_size // 2,
-                    vertex[1] * self.cell_size + self.cell_size // 2,
+                    vertex[0],
+                    vertex[1],
                 ),
                 self.cell_size,
             )
@@ -41,8 +41,8 @@ class CoverageView:
                     False,
                     [
                         (
-                            x * self.cell_size + self.cell_size // 2,
-                            y * self.cell_size + self.cell_size // 2,
+                            x ,
+                            y ,
                         )
                         for x, y in self.model.path
                     ],
@@ -56,8 +56,8 @@ class CoverageView:
                     False,
                     [
                         (
-                            x * self.cell_size + self.cell_size // 2,
-                            y * self.cell_size + self.cell_size // 2,
+                            x ,
+                            y ,
                         )
                         for x, y in self.model.vertices
                     ],
@@ -75,8 +75,8 @@ class CoverageView:
                 self.screen,
                 (0, 0, 0),
                 (
-                    vertex[0] * self.cell_size,
-                    vertex[1] * self.cell_size,
+                    vertex[0] ,
+                    vertex[1] ,
                     self.cell_size,
                     self.cell_size,
                 ),
@@ -88,12 +88,12 @@ class CoverageView:
                 self.screen,
                 (0, 0, 255),
                 (
-                    self.model.path[i][0] * self.cell_size,
-                    self.model.path[i][1] * self.cell_size,
+                    self.model.path[i][0] ,
+                    self.model.path[i][1] ,
                 ),
                 (
-                    self.model.path[i + 1][0] * self.cell_size,
-                    self.model.path[i + 1][1] * self.cell_size,
+                    self.model.path[i + 1][0] ,
+                    self.model.path[i + 1][1] ,
                 ),
                 2,
             )
@@ -102,17 +102,5 @@ class CoverageView:
 
     def show(self):
         while True:
-            self.handle_events()
             pygame.display.update()
             self.clock.tick(30)  # Adjust the frames per second as needed
-
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = event.pos
-                cell_x, cell_y = x // self.cell_size, y // self.cell_size
-                self.model.add_vertex((cell_x, cell_y))
-                self.draw_polygon()
