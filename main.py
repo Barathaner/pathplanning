@@ -1,15 +1,17 @@
-from model import CoverageModel
-from view import CoverageView
-from controller import CoverageController
-
+import sys
+from PyQt5.QtWidgets import QApplication
+from model import PolygonModel
+from view import PolygonView
+from controller import PolygonController
 
 def main():
-    model = CoverageModel()
-    view = CoverageView(model)
-    controller = CoverageController(model, view)
+    app = QApplication(sys.argv)
+    model = PolygonModel()
+    controller = PolygonController(model, None)
+    view = PolygonView(controller)
+    controller.view = view
     view.show()
-    controller.run()
+    sys.exit(app.exec_())
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
