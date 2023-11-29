@@ -27,9 +27,12 @@ class AgentInputDialog(QDialog):
         return [lineEdit.text() for lineEdit in self.lineEdits]
 
 
+from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QGraphicsLineItem
+from PyQt5.QtCore import Qt, QPointF
+from PyQt5.QtGui import QPolygonF, QPen, QColor
+
 class PolygonView(QMainWindow):
     def __init__(self, controller):
-        
         self.agent_item = None  # Grafisches Objekt für den Agenten
         self.polygon_item = None  # Grafisches Objekt für das Polygon
         super().__init__()
@@ -52,6 +55,32 @@ class PolygonView(QMainWindow):
         if event.key() == Qt.Key_X:
             self.openNumbersDialog()
 
+        if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            self.controller.handle_enter_pressed()
+
+    def draw_polygon(self, vertices):
+        self.scene.clear()  # Klären Sie die Szene, bevor Sie neu zeichnen
+
+        if vertices:
+            polygon = QPolygonF(vertices)
+            pen = QPen(QColor(Qt.red))
+            self.scene.addPolygon(polygon, pen)
+
+    def draw_path(self, path):
+        if path:
+            for i in range(len(path) - 1):
+                line = QGraphicsLineItem(path[i].x(), path[i].y(), path[i + 1].x(), path[i + 1].y())
+                line.setPen(QPen(QColor(Qt.green), 2))
+                self.scene.addItem(line)
+
+    def mousePressEvent(self, event):
+        scenePos = self.view.mapToScene(event.pos())
+        x = scenePos.x()
+        y = scenePos.y()
+        self.controller.add_vertex(x, y)
+
+
+
     def openNumbersDialog(self):
             dialog = AgentInputDialog(self)
             if dialog.exec_():
@@ -59,14 +88,6 @@ class PolygonView(QMainWindow):
                 if len(values) == 4:
                     width, height, x, y = map(float, values)
                     self.controller.create_agent(width, height, x, y)
-    def mousePressEvent(self, event):
-        scenePos = self.view.mapToScene(event.pos())
-
-        x = scenePos.x()
-        y = scenePos.y()
-        self.controller.add_vertex(x, y)
-
-
 
     def draw_polygon(self, vertices):
         if self.polygon_item is not None:
