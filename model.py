@@ -2,18 +2,32 @@ class CoverageModel:
     def __init__(self):
         self.vertices = []
         self.path = []
-        self.agent_size = None
-        self.agent_position = None
 
     def add_vertex(self, vertex):
         self.vertices.append(vertex)
 
-    def calculate_path(self):
-        if len(self.vertices) < 3:
-            return
-        self.path = self.vertices + [self.vertices[0]]
-    # Hinzufügen einer Methode zum Entfernen des letzten Punktes
     def remove_last_vertex(self):
         if self.vertices:
             self.vertices.pop()
-    
+
+    def close_polygon(self):
+        if len(self.vertices) > 2:
+            # Schließe das Polygon
+            self.path = self.vertices.copy()
+            self.path.append(self.vertices[0])
+            self.vertices.append(
+                self.vertices[0]
+            )  # Füge den ersten Punkt am Ende hinzu
+
+    def reset(self):
+        self.vertices = []
+        self.path = []
+
+    def get_points(self):
+        return self.vertices
+
+    def get_points_as_array(self):
+        return [list(point) for point in self.vertices]
+
+    def is_polygon_closed(self):
+        return len(self.path) > 1
