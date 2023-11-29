@@ -58,8 +58,11 @@ class PolygonModel:
         return np.linalg.norm(np.array(a) - np.array(b))
 
     def a_star_search(self, start, goal):
+        print("Start:", start)
+        print("Ziel:", goal)
         start = (start.x(), start.y())
-        
+        goal = goal
+
         frontier = []
         heapq.heappush(frontier, (0, start))
         came_from = {start: None}
@@ -72,12 +75,13 @@ class PolygonModel:
                 break
 
             for next in self.get_neighbors(QPointF(*current)):
+                next_tuple = (next.x(), next.y())
                 new_cost = cost_so_far[current] + 1
-                if next not in cost_so_far or new_cost < cost_so_far[next]:
-                    cost_so_far[next] = new_cost
-                    priority = new_cost + self.heuristic(next, goal)
-                    heapq.heappush(frontier, (priority, next))
-                    came_from[next] = current
+                if next_tuple not in cost_so_far or new_cost < cost_so_far[next_tuple]:
+                    cost_so_far[next_tuple] = new_cost
+                    priority = new_cost + self.heuristic(next_tuple, goal)
+                    heapq.heappush(frontier, (priority, next_tuple))
+                    came_from[next_tuple] = current
 
         path = []
         while current != start:
@@ -87,6 +91,7 @@ class PolygonModel:
         path.reverse()
 
         return [QPointF(x, y) for x, y in path]
+
 
 
 
