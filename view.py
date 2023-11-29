@@ -29,6 +29,9 @@ class AgentInputDialog(QDialog):
 
 class PolygonView(QMainWindow):
     def __init__(self, controller):
+        
+        self.agent_item = None  # Grafisches Objekt für den Agenten
+        self.polygon_item = None  # Grafisches Objekt für das Polygon
         super().__init__()
 
         self.controller = controller
@@ -63,23 +66,25 @@ class PolygonView(QMainWindow):
         y = scenePos.y()
         self.controller.add_vertex(x, y)
 
+
+
     def draw_polygon(self, vertices):
-        self.scene.clear()
+        if self.polygon_item is not None:
+            # Entferne das alte Polygon-Item von der Szene, falls vorhanden
+            self.scene.removeItem(self.polygon_item)
 
         if vertices:
             polygon = QPolygonF(vertices)
-
             pen = QPen(QColor(Qt.red))
-            self.scene.addPolygon(polygon, pen)
+            self.polygon_item = self.scene.addPolygon(polygon, pen)
 
     def draw_agent(self, agent):
-            # Stelle sicher, dass der Agent existiert
-            if agent is not None:
-                # Erstellen eines Rechtecks zur Darstellung des Agenten
-                agent_rect = QGraphicsRectItem(agent.position.x(), agent.position.y(), 
-                                            agent.width, agent.height)
-                agent_rect.setPen(QPen(QColor(Qt.blue)))
-                self.scene.addItem(agent_rect)
+        if agent is not None:
+            if self.agent_item is not None:
+                # Entferne das alte Agent-Item von der Szene, falls vorhanden
+                self.scene.removeItem(self.agent_item)
 
-                # Optional: Agenten zentrieren, falls gewünscht
-                self.view.centerOn(agent.position.x(), agent.position.y())
+            agent_rect = QGraphicsRectItem(agent.position.x(), agent.position.y(), 
+                                           agent.width, agent.height)
+            agent_rect.setPen(QPen(QColor(Qt.blue)))
+            self.agent_item = self.scene.addItem(agent_rect)
