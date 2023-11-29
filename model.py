@@ -22,7 +22,7 @@ class CoverageModel:
         self.coverage_path = []  # Initialisiere die Variable für den Pfad
         self.agent_path = []
         self.path = []
-        self.map = [20, 20]
+        self.map = [500, 500]
         
     def add_agent(self, w, h, x, y):
         self.agent = AgentModel(w, h, x, y)

@@ -5,15 +5,8 @@ import sys
 class CoverageView:
     def __init__(self, model):
         self.model = model
-        self.grid_size = 100  # Größe des Rasters
-        self.cell_size = 5  # Größe der Zellen
-        self.width, self.height = (
-            self.grid_size * self.cell_size,
-            self.grid_size * self.cell_size,
-        )
-        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.screen = pygame.display.set_mode((self.model.map[0], self.model.map[1]))
         self.clock = pygame.time.Clock()
-        self.draw_polygon()
         pygame.display.set_caption("Polygonzeichner")
 
     def draw_polygon(self):
@@ -26,9 +19,8 @@ class CoverageView:
                 (255, 0, 0),
                 (
                     vertex[0],
-                    vertex[1],
-                ),
-                self.cell_size,
+                    vertex[1]
+                ),5
             )
 
         # Connect the vertices with red lines
@@ -76,9 +68,7 @@ class CoverageView:
                 (0, 0, 0),
                 (
                     vertex[0] ,
-                    vertex[1] ,
-                    self.cell_size,
-                    self.cell_size,
+                    vertex[1] 
                 ),
             )
 
@@ -101,6 +91,12 @@ class CoverageView:
         pygame.display.flip()
 
     def show(self):
-        while True:
-            pygame.display.update()
-            self.clock.tick(30)  # Adjust the frames per second as needed
+        self.screen.fill((255, 255, 255))
+        pygame.display.flip()
+
+        # Hier können Sie Logik hinzufügen, um zu entscheiden,
+        # ob draw_polygon oder draw_path aufgerufen werden soll
+        self.draw_polygon()  # oder self.draw_path()
+
+        pygame.display.update()
+        self.clock.tick(20)  # Adjust the frames per second as needed

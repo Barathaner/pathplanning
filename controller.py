@@ -50,6 +50,8 @@ class CoverageController:
                     else:
                         self.model.add_vertex((x, y))
                         self.view.draw_polygon()
+            else:
+                self.view.show()
 
     def run(self):
         while True:
