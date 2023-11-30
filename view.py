@@ -75,6 +75,7 @@ class PolygonView(QMainWindow):
         self.controller = controller
         self.agent_item = None
         self.polygon_item = None
+        self.pathitem = None
 
         # Raster- und Canvas-Größen
         self.raster_size = 50
@@ -110,13 +111,16 @@ class PolygonView(QMainWindow):
             self.controller.handle_enter_pressed()
 
     def draw_path(self, path):
+        if self.pathitem is not None:
+            self.scene.removeItem(self.pathitem)
+        
         if path:
             for i in range(len(path) - 1):
                 line = QGraphicsLineItem(
                     path[i].x* self.cell_size, path[i].y* self.cell_size, path[i + 1].x* self.cell_size, path[i + 1].y* self.cell_size
                 )
                 line.setPen(QPen(QColor(Qt.green), 2))
-                self.scene.addItem(line)
+                self.pathitem=self.scene.addItem(line)
 
 
     def openNumbersDialog(self):

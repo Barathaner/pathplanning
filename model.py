@@ -79,7 +79,7 @@ class Model:
     def __init__(self):
         self.polygon = PolygonModel()
         self.intersectedpolygon = PolygonModel()
-        self.coveragepath = [Point(5,5), Point(10,5), Point(20,4), Point(20,8), Point(30,5)]
+        self.coveragepath = []
         self.agent = None
         
     def intersect_polygon(self):
@@ -114,12 +114,7 @@ class Model:
                 current_x += self.agent.width
                 continue
 
-            if isinstance(intersected_strip, geom.Polygon):
-                for i in intersected_strip.exterior.coords:
-                    print(i)
-            elif isinstance(intersected_strip, geom.MultiPolygon):
-                for poly in intersected_strip:
-                    for i in poly.exterior.coords:
-                        print(i)
-
+            for i in intersected_strip.exterior.coords:
+                print(i)
+                self.coveragepath.append(Point(i[0], i[1]))   
             current_x += self.agent.width
