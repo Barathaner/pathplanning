@@ -11,8 +11,8 @@ class PolygonController:
         self.view.draw_polygon(self.model.Polygon.get_nodes())
 
     def handle_enter_pressed(self):
-        self.model.plan_coverage_path()
-        self.view.draw_path(self.model.agent_path)
+        self.model.pathplanner.plan_coverage_path()
+        self.view.draw_path(self.model.pathplanner.coveragepath)
 
     def create_agent(self, width, height, x, y):
         self.model.create_agent(width, height, x, y)

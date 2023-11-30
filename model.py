@@ -33,11 +33,22 @@ class PolygonModel:
     
     def get_nodes(self):
         return self.nodes
-
+    
+    
+class PathPlanner:
+    def __init__(self):
+        self.intersectedpolygon = PolygonModel()
+        self.coveragepath = [QPoint(5,5),QPoint(10,5),QPoint(20,4),QPoint(20,8),QPoint(30,5)]
+        self.agent = None
+        
+    def plan_coverage_path(self):
+        self.coveragepath= [QPoint(5,5),QPoint(10,5),QPoint(20,4),QPoint(20,8),QPoint(30,5)]
 class Model:
     def __init__(self):
         self.Polygon = PolygonModel()
         self.agent = None
+        self.pathplanner = PathPlanner()
         
     def create_agent(self, width, height, x, y):
         self.agent = AgentModel(width, height, x, y)
+        

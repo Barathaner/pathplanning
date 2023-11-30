@@ -113,7 +113,7 @@ class PolygonView(QMainWindow):
         if path:
             for i in range(len(path) - 1):
                 line = QGraphicsLineItem(
-                    path[i].x(), path[i].y(), path[i + 1].x(), path[i + 1].y()
+                    path[i].x()* self.cell_size, path[i].y()* self.cell_size, path[i + 1].x()* self.cell_size, path[i + 1].y()* self.cell_size
                 )
                 line.setPen(QPen(QColor(Qt.green), 2))
                 self.scene.addItem(line)
