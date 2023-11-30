@@ -11,12 +11,13 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QMessageBox,
     QGraphicsLineItem,
+    
     QWidget,
     QLineEdit,
     QHBoxLayout,
 )
 from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QPolygonF, QPen, QColor, QIntValidator
+from PyQt5.QtGui import QPolygonF, QPen, QColor, QIntValidator,QBrush
 
 
 class AgentInputDialog(QDialog):
@@ -158,7 +159,7 @@ class PolygonView(QMainWindow):
             # Erstelle das Agent-Objekt mit umgerechneten Werten
             agent_rect = QGraphicsRectItem(agent_x, agent_y, agent_width, agent_height)
             agent_rect.setPen(QPen(QColor(Qt.blue)))
-            agent_rect.f
+            agent_rect.setBrush(QBrush(QColor(Qt.blue)))
             self.agent_item = self.scene.addItem(agent_rect)
 
 
