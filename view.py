@@ -111,17 +111,26 @@ class PolygonView(QMainWindow):
             self.controller.handle_enter_pressed()
 
     def draw_path(self, path):
-        if self.pathitem is not None:
-            self.scene.removeItem(self.pathitem)
-        
+        # Entfernen Sie zuerst alle alten Linien, wenn sie existieren
+        if self.pathitem:
+            for item in self.pathitem:
+                self.scene.removeItem(item)
+            self.pathitem.clear()
+
+        # Initialisieren Sie self.pathitem als Liste, wenn sie noch nicht existiert
+        if self.pathitem is None:
+            self.pathitem = []
+
+        # Zeichnen Sie den neuen Pfad
         if path:
             for i in range(len(path) - 1):
                 line = QGraphicsLineItem(
-                    path[i].x* self.cell_size, path[i].y* self.cell_size, path[i + 1].x* self.cell_size, path[i + 1].y* self.cell_size
+                    path[i].x * self.cell_size, path[i].y * self.cell_size,
+                    path[i + 1].x * self.cell_size, path[i + 1].y * self.cell_size
                 )
                 line.setPen(QPen(QColor(Qt.green), 2))
-                self.pathitem=self.scene.addItem(line)
-
+                self.scene.addItem(line)
+                self.pathitem.append(line)
 
     def openNumbersDialog(self):
         dialog = AgentInputDialog(self)

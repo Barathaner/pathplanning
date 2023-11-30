@@ -6,8 +6,8 @@ import math
 
 class Point:
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x = int(x)
+        self.y = int(y)
 
 
 class AgentModel:
@@ -78,24 +78,17 @@ class PolygonModel:
 class Model:
     def __init__(self):
         self.polygon = PolygonModel()
-        self.intersectedpolygon = PolygonModel()
-        self.coveragepath = []
+        self.intersectedpolygon = []
+        self.agent_path=[]
         self.agent = None
-        
-    def intersect_polygon(self):
-        pass
-    
+
     
     def create_agent(self, width, height, x, y):
         self.agent = AgentModel(width, height, x, y)
-        
-    def heuristic(self, a, b):
-        return np.linalg.norm(np.array(a) - np.array(b))
+
     
-    def astar(self, start, goal):
-        pass
-    
-    def plan_coverage_path(self):
+    def plan_intersectedpolygon(self):
+        self.intersectedpolygon = []
         if len(self.polygon.get_nodes()) < 3:
             print("Nicht genügend Punkte für ein Polygon.")
             return
@@ -114,12 +107,78 @@ class Model:
             if isinstance(intersected_strip, geom.Polygon):
                 for i in intersected_strip.exterior.coords:
                     print(i)
-                    self.coveragepath.append(Point(i[0], i[1]))
+                    self.intersectedpolygon.append(Point(int(math.floor(i[0])), int(math.floor(i[1]))))
             elif isinstance(intersected_strip, geom.MultiPolygon):
                 for polygon in intersected_strip.geoms:
                     for i in polygon.exterior.coords:
                         print(i)
-                        self.coveragepath.append(Point(i[0], i[1]))
+                        self.intersectedpolygon.append(Point(int(math.floor(i[0])), int(math.floor(i[1]))))
 
             # Berechne den Pfad innerhalb des Streifens
             current_x += self.agent.width
+
+
+    def heuristic(self, a, b):
+        # Konvertieren Sie beide Punkte in numpy Arrays für die Berechnung
+        a_array = np.array([a[0], a[1]])
+        b_array = np.array([b[0], b[1]])
+        return np.linalg.norm(a_array - b_array)
+
+    def plan_coverage_agent_path(self):
+        self.agent_path = []
+        self.plan_intersectedpolygon()
+
+        if not self.intersectedpolygon:
+            return
+
+        agent_path = []
+        start = (self.agent.position.x, self.agent.position.y)
+        for goal_point in self.intersectedpolygon:
+            # Konvertieren Sie Point in ein Tuple für die A* Suche
+            goal = (goal_point.x, goal_point.y)
+            path_segment = self.a_star_search(start, goal)
+            agent_path.extend(path_segment)
+            start = goal
+        self.agent_path = agent_path
+
+
+    def a_star_search(self, start, goal):
+        frontier = []
+        heapq.heappush(frontier, (0, start))
+        came_from = {start: None}
+        cost_so_far = {start: 0}
+
+        while frontier:
+            current = heapq.heappop(frontier)[1]
+
+            if current == goal:
+                break
+
+            for next in self.get_neighbors(current):
+                new_cost = cost_so_far[current] + 1  # oder eine spezifische Kostenfunktion
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost + self.heuristic(next, goal)
+                    heapq.heappush(frontier, (priority, next))
+                    came_from[next] = current
+
+        # Rekonstruieren Sie den Pfad von start zu goal
+        path = []
+        while current != start:
+            path.append(Point(current[0], current[1]))
+            current = came_from[current]
+        path.append(Point(start[0],start[1]))  # optional
+        path.reverse()  # optional
+        
+        return path
+
+
+    def get_neighbors(self, node):
+        """Bestimmt die Nachbarn eines Knotens im Raster."""
+        directions = [(1, 0), (0, 1), (-1, 0), (0, -1),(-1,-1),(1,1)]  # 4-Wege-Nachbarschaft
+        neighbors = []
+        for direction in directions:
+            neighbor = (node[0] + direction[0], node[1] + direction[1])
+            # Überprüfen Sie hier, ob der Nachbar innerhalb der Grenzen und nicht blockiert ist.
+            neighbors.append(neighbor)
+        return neighbors
