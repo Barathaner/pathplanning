@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QPushButton,
     QMessageBox,
+    QGraphicsLineItem,
     QWidget,
     QLineEdit,
     QHBoxLayout,
@@ -68,23 +69,37 @@ class AgentInputDialog(QDialog):
 
 class PolygonView(QMainWindow):
     def __init__(self, controller):
-        self.agent_item = None  # Grafisches Objekt für den Agenten
-        self.polygon_item = None  # Grafisches Objekt für das Polygon
         super().__init__()
 
         self.controller = controller
+        self.agent_item = None
+        self.polygon_item = None
+
+        # Raster- und Canvas-Größen
+        self.raster_size = 50
+        self.canvas_size = 1000
+        self.cell_size = self.canvas_size / self.raster_size
 
         self.scene = QGraphicsScene(self)
+        self.scene.setSceneRect(0, 0, self.canvas_size, self.canvas_size)
         self.view = QGraphicsView(self.scene, self)
         self.setCentralWidget(self.view)
 
-        self.scene.setSceneRect(0, 0, 400, 400)
-
         self.setWindowTitle("Polygon Drawer")
-        self.setGeometry(100, 100, 500, 500)
+        self.setGeometry(100, 100, self.canvas_size + 100, self.canvas_size + 100)
 
         self.view.setMouseTracking(True)
         self.view.mousePressEvent = self.mousePressEvent
+
+        self.draw_grid()    
+
+
+    def draw_grid(self):
+        for i in range(self.raster_size + 1):
+            # Vertikale Linien
+            self.scene.addLine(i * self.cell_size, 0, i * self.cell_size, self.canvas_size, QPen(QColor(220, 220, 220)))
+            # Horizontale Linien
+            self.scene.addLine(0, i * self.cell_size, self.canvas_size, i * self.cell_size, QPen(QColor(220, 220, 220)))
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_X:
@@ -92,14 +107,6 @@ class PolygonView(QMainWindow):
 
         if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
             self.controller.handle_enter_pressed()
-
-    def draw_polygon(self, vertices):
-        self.scene.clear()  # Klären Sie die Szene, bevor Sie neu zeichnen
-
-        if vertices:
-            polygon = QPolygonF(vertices)
-            pen = QPen(QColor(Qt.red))
-            self.scene.addPolygon(polygon, pen)
 
     def draw_path(self, path):
         if path:
@@ -110,48 +117,48 @@ class PolygonView(QMainWindow):
                 line.setPen(QPen(QColor(Qt.green), 2))
                 self.scene.addItem(line)
 
-    def mousePressEvent(self, event):
-        scenePos = self.view.mapToScene(event.pos())
-        x = scenePos.x()
-        y = scenePos.y()
-        self.controller.add_vertex(x, y)
 
     def openNumbersDialog(self):
         dialog = AgentInputDialog(self)
         if dialog.exec_():
             values = dialog.getValues()
             if len(values) == 4:
-                width, height, x, y = map(float, values)
+                width, height, x, y = map(int, values)
                 print("Eingegebene Werte:", width, height, x, y)
                 self.controller.create_agent(width, height, x, y)
 
     def mousePressEvent(self, event):
         scenePos = self.view.mapToScene(event.pos())
-
-        x = scenePos.x()
-        y = scenePos.y()
-        self.controller.add_vertex(x, y)
+        raster_x = int(scenePos.x() / self.cell_size) * int(self.cell_size)
+        raster_y = int(scenePos.y() / self.cell_size) * int(self.cell_size)
+        self.controller.add_vertex(raster_x, raster_y)
 
     def draw_polygon(self, vertices):
         if self.polygon_item is not None:
             # Entferne das alte Polygon-Item von der Szene, falls vorhanden
             self.scene.removeItem(self.polygon_item)
-
         if vertices:
-            polygon = QPolygonF(vertices)
+            # Erzeuge QPolygonF mit Ganzzahlen
+            int_vertices = [QPointF(int(v.x()), int(v.y())) for v in vertices]
+            polygon = QPolygonF(int_vertices)
             pen = QPen(QColor(Qt.red))
             self.polygon_item = self.scene.addPolygon(polygon, pen)
 
     def draw_agent(self, agent):
         if agent is not None:
             if self.agent_item is not None:
-                # Entferne das alte Agent-Item von der Szene, falls vorhanden
                 self.scene.removeItem(self.agent_item)
 
-            agent_rect = QGraphicsRectItem(
-                agent.position.x(), agent.position.y(), agent.width, agent.height
-            )
+            # Umrechnung von Rasterkoordinaten in Pixelkoordinaten
+            agent_x = int(agent.position.x() * self.cell_size)
+            agent_y = int(agent.position.y() * self.cell_size)
+            agent_width = int(agent.width * self.cell_size)
+            agent_height = int(agent.height * self.cell_size)
+
+            # Erstelle das Agent-Objekt mit umgerechneten Werten
+            agent_rect = QGraphicsRectItem(agent_x, agent_y, agent_width, agent_height)
             agent_rect.setPen(QPen(QColor(Qt.blue)))
+            agent_rect.f
             self.agent_item = self.scene.addItem(agent_rect)
 
 

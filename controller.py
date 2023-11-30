@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import QPoint
 
 
 class PolygonController:
@@ -7,8 +7,8 @@ class PolygonController:
         self.view = view
 
     def add_vertex(self, x, y):
-        self.model.add_vertex(QPointF(x, y))
-        self.view.draw_polygon(self.model.get_vertices())
+        self.model.Polygon.add_node(QPoint(x, y))
+        self.view.draw_polygon(self.model.Polygon.get_nodes())
 
     def handle_enter_pressed(self):
         self.model.plan_coverage_path()

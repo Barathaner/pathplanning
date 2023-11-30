@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from model import PolygonModel
+from model import Model
 from view import PolygonView, WelcomeView
 from controller import PolygonController
 
@@ -10,7 +10,7 @@ def main():
 
     def show_polygon_view():
         welcome_view.close_welcome_view()  # Schließe den Welcome Screen
-        model = PolygonModel()
+        model = Model()
         controller = PolygonController(model, None)
         view = PolygonView(controller)
         controller.view = view
