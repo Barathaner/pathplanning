@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QMessageBox,
     QGraphicsLineItem,
-    
+    QGraphicsEllipseItem,
     QWidget,
     QLineEdit,
     QHBoxLayout,
@@ -111,7 +111,7 @@ class PolygonView(QMainWindow):
             self.controller.handle_enter_pressed()
 
     def draw_path(self, path):
-        # Entfernen Sie zuerst alle alten Linien, wenn sie existieren
+        # Entfernen Sie zuerst alle alten Linien und Punkte, wenn sie existieren
         if self.pathitem:
             for item in self.pathitem:
                 self.scene.removeItem(item)
@@ -123,14 +123,29 @@ class PolygonView(QMainWindow):
 
         # Zeichnen Sie den neuen Pfad
         if path:
-            for i in range(len(path) - 1):
-                line = QGraphicsLineItem(
-                    path[i].x * self.cell_size, path[i].y * self.cell_size,
-                    path[i + 1].x * self.cell_size, path[i + 1].y * self.cell_size
+            for i in range(len(path)):
+                # Zeichnen der Linie zwischen den Punkten
+                if i < len(path) - 1:
+                    line = QGraphicsLineItem(
+                        path[i].x * self.cell_size, path[i].y * self.cell_size,
+                        path[i + 1].x * self.cell_size, path[i + 1].y * self.cell_size
+                    )
+                    line.setPen(QPen(QColor(Qt.green), 2))
+                    self.scene.addItem(line)
+                    self.pathitem.append(line)
+
+                # Zeichnen des Punktes
+                point_size = 5  # Die Größe des Punktes, kann angepasst werden
+                point = QGraphicsEllipseItem(
+                    path[i].x * self.cell_size - point_size / 2, 
+                    path[i].y * self.cell_size - point_size / 2, 
+                    point_size, 
+                    point_size
                 )
-                line.setPen(QPen(QColor(Qt.green), 2))
-                self.scene.addItem(line)
-                self.pathitem.append(line)
+                point.setBrush(QBrush(QColor(Qt.red)))
+                self.scene.addItem(point)
+                self.pathitem.append(point)
+
 
     def openNumbersDialog(self):
         dialog = AgentInputDialog(self)
