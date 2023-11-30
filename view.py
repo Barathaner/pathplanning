@@ -134,6 +134,12 @@ class PolygonView(QMainWindow):
         raster_y = int(scenePos.y() / self.cell_size)
         self.controller.add_vertex(raster_x, raster_y)
 
+    def draw_polygon_vertices(self, vertices):
+            for vertex in vertices:
+                x = vertex.x() * self.cell_size
+                y = vertex.y() * self.cell_size
+                self.scene.addRect(x, y, self.cell_size, self.cell_size, QPen(Qt.NoPen), QBrush(QColor(Qt.black)))
+
     def draw_polygon(self, vertices):
         if self.polygon_item is not None:
             self.scene.removeItem(self.polygon_item)
@@ -143,6 +149,7 @@ class PolygonView(QMainWindow):
             polygon = QPolygonF(pixel_vertices)
             pen = QPen(QColor(Qt.red))
             self.polygon_item = self.scene.addPolygon(polygon, pen)
+            self.draw_polygon_vertices(vertices)
 
     def draw_agent(self, agent):
         if agent is not None:
