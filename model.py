@@ -79,8 +79,10 @@ class Model:
     def __init__(self):
         self.polygon = PolygonModel()
         self.intersectedpolygon = []
-        self.agent_path=[]
+        self.agent_path = []
         self.agent = None
+        self.shapely_polygon = None  # Hinzugefügtes Attribut für das shapely Polygon
+
 
     
     def create_agent(self, width, height, x, y):
@@ -131,15 +133,21 @@ class Model:
         if not self.intersectedpolygon:
             return
 
-        agent_path = []
+        raw_agent_path = []
         start = (self.agent.position.x, self.agent.position.y)
         for goal_point in self.intersectedpolygon:
-            # Konvertieren Sie Point in ein Tuple für die A* Suche
             goal = (goal_point.x, goal_point.y)
             path_segment = self.a_star_search(start, goal)
-            agent_path.extend(path_segment)
+            raw_agent_path.extend(path_segment)
             start = goal
-        self.agent_path = agent_path
+
+        # Duplikate entfernen
+        seen = set()
+        self.agent_path = []
+        for point in raw_agent_path:
+            if (point.x, point.y) not in seen:
+                seen.add((point.x, point.y))
+                self.agent_path.append(point)
 
 
     def a_star_search(self, start, goal):

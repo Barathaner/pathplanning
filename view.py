@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QMessageBox,
     QGraphicsLineItem,
+    QGraphicsTextItem,
     QGraphicsEllipseItem,
     QWidget,
     QLineEdit,
@@ -110,8 +111,9 @@ class PolygonView(QMainWindow):
         if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
             self.controller.handle_enter_pressed()
 
+
     def draw_path(self, path):
-        # Entfernen Sie zuerst alle alten Linien und Punkte, wenn sie existieren
+        # Entfernen Sie zuerst alle alten Linien, Punkte und Labels, wenn sie existieren
         if self.pathitem:
             for item in self.pathitem:
                 self.scene.removeItem(item)
@@ -145,6 +147,13 @@ class PolygonView(QMainWindow):
                 point.setBrush(QBrush(QColor(Qt.red)))
                 self.scene.addItem(point)
                 self.pathitem.append(point)
+
+                # Hinzufügen des Labels
+                label = QGraphicsTextItem(str(i))
+                label.setPos(path[i].x * self.cell_size, path[i].y * self.cell_size)
+                self.scene.addItem(label)
+                self.pathitem.append(label)
+
 
 
     def openNumbersDialog(self):
