@@ -17,6 +17,7 @@ class PolygonModel:
     def add_node(self, point):
         self.nodes.append(point)
         self.sort_nodes()
+        print("Nodes:", self.nodes)
 
     def sort_nodes(self):
         if len(self.nodes) > 2:

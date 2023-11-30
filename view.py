@@ -130,18 +130,17 @@ class PolygonView(QMainWindow):
 
     def mousePressEvent(self, event):
         scenePos = self.view.mapToScene(event.pos())
-        raster_x = int(scenePos.x() / self.cell_size) * int(self.cell_size)
-        raster_y = int(scenePos.y() / self.cell_size) * int(self.cell_size)
+        raster_x = int(scenePos.x() / self.cell_size)
+        raster_y = int(scenePos.y() / self.cell_size)
         self.controller.add_vertex(raster_x, raster_y)
 
     def draw_polygon(self, vertices):
         if self.polygon_item is not None:
-            # Entferne das alte Polygon-Item von der Szene, falls vorhanden
             self.scene.removeItem(self.polygon_item)
+
         if vertices:
-            # Erzeuge QPolygonF mit Ganzzahlen
-            int_vertices = [QPointF(int(v.x()), int(v.y())) for v in vertices]
-            polygon = QPolygonF(int_vertices)
+            pixel_vertices = [QPointF(v.x() * self.cell_size, v.y() * self.cell_size) for v in vertices]
+            polygon = QPolygonF(pixel_vertices)
             pen = QPen(QColor(Qt.red))
             self.polygon_item = self.scene.addPolygon(polygon, pen)
 
@@ -150,13 +149,11 @@ class PolygonView(QMainWindow):
             if self.agent_item is not None:
                 self.scene.removeItem(self.agent_item)
 
-            # Umrechnung von Rasterkoordinaten in Pixelkoordinaten
-            agent_x = int(agent.position.x() * self.cell_size)
-            agent_y = int(agent.position.y() * self.cell_size)
-            agent_width = int(agent.width * self.cell_size)
-            agent_height = int(agent.height * self.cell_size)
+            agent_x = agent.position.x() * self.cell_size
+            agent_y = agent.position.y() * self.cell_size
+            agent_width = agent.width * self.cell_size
+            agent_height = agent.height * self.cell_size
 
-            # Erstelle das Agent-Objekt mit umgerechneten Werten
             agent_rect = QGraphicsRectItem(agent_x, agent_y, agent_width, agent_height)
             agent_rect.setPen(QPen(QColor(Qt.blue)))
             agent_rect.setBrush(QBrush(QColor(Qt.blue)))
