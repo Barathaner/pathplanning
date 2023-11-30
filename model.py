@@ -142,12 +142,9 @@ class Model:
             start = goal
 
         # Duplikate entfernen
-        seen = set()
         self.agent_path = []
         for point in raw_agent_path:
-            if (point.x, point.y) not in seen:
-                seen.add((point.x, point.y))
-                self.agent_path.append(point)
+            self.agent_path.append(point)
 
 
     def a_star_search(self, start, goal):
