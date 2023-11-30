@@ -109,12 +109,17 @@ class Model:
             strip_polygon = geom.Polygon([(current_x, miny), (current_x + self.agent.width, miny), 
                                         (current_x + self.agent.width, maxy), (current_x, maxy)])
             intersected_strip = area.intersection(strip_polygon)
+            
+            # Überprüfen, ob das Ergebnis ein Polygon oder ein MultiPolygon ist
+            if isinstance(intersected_strip, geom.Polygon):
+                for i in intersected_strip.exterior.coords:
+                    print(i)
+                    self.coveragepath.append(Point(i[0], i[1]))
+            elif isinstance(intersected_strip, geom.MultiPolygon):
+                for polygon in intersected_strip.geoms:
+                    for i in polygon.exterior.coords:
+                        print(i)
+                        self.coveragepath.append(Point(i[0], i[1]))
 
-            if intersected_strip.is_empty:
-                current_x += self.agent.width
-                continue
-
-            for i in intersected_strip.exterior.coords:
-                print(i)
-                self.coveragepath.append(Point(i[0], i[1]))   
+            # Berechne den Pfad innerhalb des Streifens
             current_x += self.agent.width
