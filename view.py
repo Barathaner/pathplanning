@@ -136,8 +136,8 @@ class PolygonView(QMainWindow):
 
     def draw_polygon_vertices(self, vertices):
             for vertex in vertices:
-                x = vertex.x() * self.cell_size
-                y = vertex.y() * self.cell_size
+                x = vertex.x * self.cell_size
+                y = vertex.y * self.cell_size
                 self.scene.addRect(x, y, self.cell_size, self.cell_size, QPen(Qt.NoPen), QBrush(QColor(Qt.black)))
 
     def draw_polygon(self, vertices):
@@ -145,7 +145,7 @@ class PolygonView(QMainWindow):
             self.scene.removeItem(self.polygon_item)
 
         if vertices:
-            pixel_vertices = [QPointF(v.x() * self.cell_size, v.y() * self.cell_size) for v in vertices]
+            pixel_vertices = [QPointF(v.x * self.cell_size, v.y * self.cell_size) for v in vertices]
             polygon = QPolygonF(pixel_vertices)
             pen = QPen(QColor(Qt.red))
             self.polygon_item = self.scene.addPolygon(polygon, pen)
@@ -156,8 +156,8 @@ class PolygonView(QMainWindow):
             if self.agent_item is not None:
                 self.scene.removeItem(self.agent_item)
 
-            agent_x = agent.position.x() * self.cell_size
-            agent_y = agent.position.y() * self.cell_size
+            agent_x = agent.position.x * self.cell_size
+            agent_y = agent.position.y * self.cell_size
             agent_width = agent.width * self.cell_size
             agent_height = agent.height * self.cell_size
 

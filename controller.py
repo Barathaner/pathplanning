@@ -1,5 +1,3 @@
-from PyQt5.QtCore import QPoint
-
 
 class PolygonController:
     def __init__(self, model, view):
@@ -7,7 +5,7 @@ class PolygonController:
         self.view = view
 
     def add_vertex(self, x, y):
-        self.model.Polygon.add_node(QPoint(x, y))
+        self.model.Polygon.add_node(x, y)
         self.view.draw_polygon(self.model.Polygon.get_nodes())
 
     def handle_enter_pressed(self):
