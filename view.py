@@ -10,6 +10,9 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QPushButton,
     QMessageBox,
+    QWidget,
+    QLineEdit,
+    QHBoxLayout,
 )
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QPolygonF, QPen, QColor, QIntValidator
@@ -61,16 +64,6 @@ class AgentInputDialog(QDialog):
 
     def getValues(self):
         return [lineEdit.text() for lineEdit in self.lineEdits]
-
-
-from PyQt5.QtWidgets import (
-    QMainWindow,
-    QGraphicsScene,
-    QGraphicsView,
-    QGraphicsLineItem,
-)
-from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QPolygonF, QPen, QColor
 
 
 class PolygonView(QMainWindow):
@@ -160,3 +153,98 @@ class PolygonView(QMainWindow):
             )
             agent_rect.setPen(QPen(QColor(Qt.blue)))
             self.agent_item = self.scene.addItem(agent_rect)
+
+
+class WelcomeView(QWidget):
+    def __init__(self, start_callback, parent=None):
+        super().__init__(parent)
+
+        self.layout = QVBoxLayout(self)
+
+        label = QLabel("Welcome to the Pathplanner!")
+        label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        self.layout.addWidget(label)
+
+        # Erstelle ein horizontales Layout für die linke und rechte Seite
+        horizontal_layout = QHBoxLayout()
+
+        # Linke Seite
+        left_widget = QWidget()
+        left_widget.setFixedWidth(500)  # Setze die gewünschte Breite
+        left_layout = QVBoxLayout(left_widget)
+        agent_inputs_label = QLabel("Agent-Inputs")
+        agent_inputs_label.setAlignment(Qt.AlignHCenter)
+        left_layout.addWidget(agent_inputs_label)
+
+        # Füge vier Inputs hinzu
+        input_labels = ["Width:", "Height:", "X-Position:", "Y-Position:"]
+        self.lineEdits = []
+
+        for label_text in input_labels:
+            left_layout.addWidget(QLabel(label_text))
+            lineEdit = QLineEdit(left_widget)
+            # Eingabe auf ganze Zahlen beschränken
+            lineEdit.setValidator(QIntValidator())
+            self.lineEdits.append(lineEdit)
+            left_layout.addWidget(lineEdit)
+
+        # Rechte Seite
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+        control_label = QLabel("Controls")
+        control_label.setAlignment(Qt.AlignHCenter)
+        right_layout.addWidget(control_label)
+        right_widget.setFixedWidth(500)  # Setze die gewünschte Breite
+
+        # Füge Erklärungen für die Steuerung hinzu
+        control_layouts = [
+            "Draw Polygon with Mouse",
+            "Click X to change the Agent-Infos",
+            "Click Enter to start the Pathplanning",
+        ]
+
+        for control_text in control_layouts:
+            right_layout.addWidget(QLabel(control_text))
+
+        # Füge die linken und rechten Widgets zum horizontalen Layout hinzu
+        horizontal_layout.addWidget(left_widget)
+        horizontal_layout.addWidget(right_widget)
+
+        # Füge das horizontale Layout zum Hauptlayout hinzu
+        self.layout.addLayout(horizontal_layout)
+
+        start_button = QPushButton("Start")
+        start_button.clicked.connect(start_callback)
+        start_button.setFocusPolicy(Qt.StrongFocus)
+        self.layout.addWidget(start_button)
+
+        self.setLayout(self.layout)
+
+        # Setze die gewünschte Größe für das Welcome-Fenster
+        self.resize(1200, 600)
+
+    def close_welcome_view(self):
+        self.close()
+        # inputs = [lineEdit.text() for lineEdit in self.lineEdits]
+
+        # # Überprüfe, ob alle Eingabefelder Werte enthalten
+        # if all(inputs):
+        #     try:
+        #         # Versuche die eingegebenen Werte in Ganzzahlen umzuwandeln
+        #         inputs_as_int = [int(value) for value in inputs]
+        #         # Rufe die create_agent-Methode des Controllers auf
+        #         print("Eingegebene Werte:", inputs_as_int)
+        #         self.controller.create_agent(*inputs_as_int)
+        #         self.close()  # Schließe das Welcome-Fenster
+        #     except ValueError:
+        #         QMessageBox.warning(self, "Error", "Please enter valid integers.")
+        # else:
+        #     QMessageBox.warning(self, "Error", "Please fill in all input fields.")
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            self.layout.itemAt(
+                2
+            ).widget().click()  # Simuliere einen Klick auf den Start-Button
+        else:
+            super().keyPressEvent(event)

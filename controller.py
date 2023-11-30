@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QPointF
 
+
 class PolygonController:
     def __init__(self, model, view):
         self.model = model
