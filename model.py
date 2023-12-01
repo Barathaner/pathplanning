@@ -95,36 +95,34 @@ class Model:
             print("Nicht genügend Punkte für ein Polygon.")
             return
         
-        area = self.polygon.to_shapely_polygon()
-        minx, miny, maxx, maxy = area.bounds
+        self.shapely_polygon = self.polygon.to_shapely_polygon()
+        minx, miny, maxx, maxy = self.shapely_polygon.bounds
         current_x = minx
 
         while current_x < maxx:
-            # Erstelle einen Streifen
+            # Erstelle einen Streifen und prüfe auf Überschneidungen
             strip_polygon = geom.Polygon([(current_x, miny), (current_x + self.agent.width, miny), 
                                         (current_x + self.agent.width, maxy), (current_x, maxy)])
-            intersected_strip = area.intersection(strip_polygon)
+            intersected_strip = self.shapely_polygon.intersection(strip_polygon)
             
-            # Überprüfen, ob das Ergebnis ein Polygon oder ein MultiPolygon ist
+            # Füge nur die notwendigen Punkte hinzu
             if isinstance(intersected_strip, geom.Polygon):
-                for i in intersected_strip.exterior.coords:
-                    print(i)
-                    self.intersectedpolygon.append(Point(int(math.floor(i[0])), int(math.floor(i[1]))))
+                self.add_intersections(intersected_strip)
             elif isinstance(intersected_strip, geom.MultiPolygon):
                 for polygon in intersected_strip.geoms:
-                    for i in polygon.exterior.coords:
-                        print(i)
-                        self.intersectedpolygon.append(Point(int(math.floor(i[0])), int(math.floor(i[1]))))
+                    self.add_intersections(polygon)
 
-            # Berechne den Pfad innerhalb des Streifens
             current_x += self.agent.width
+
+    def add_intersections(self, polygon):
+        for point in polygon.exterior.coords:
+            self.intersectedpolygon.append(Point(int(math.floor(point[0])), int(math.floor(point[1]))))
+
 
 
     def heuristic(self, a, b):
-        # Konvertieren Sie beide Punkte in numpy Arrays für die Berechnung
-        a_array = np.array([a[0], a[1]])
-        b_array = np.array([b[0], b[1]])
-        return np.linalg.norm(a_array - b_array)
+        # Verwenden der Manhattan-Distanz als Heuristik für ein Raster
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
     def plan_coverage_agent_path(self):
         self.agent_path = []

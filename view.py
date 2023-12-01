@@ -79,7 +79,7 @@ class PolygonView(QMainWindow):
         self.pathitem = None
 
         # Raster- und Canvas-Größen
-        self.raster_size = 50
+        self.raster_size = 32
         self.canvas_size = 1000
         self.cell_size = self.canvas_size / self.raster_size
 
@@ -153,6 +153,7 @@ class PolygonView(QMainWindow):
                 label.setPos(path[i].x * self.cell_size, path[i].y * self.cell_size)
                 self.scene.addItem(label)
                 self.pathitem.append(label)
+                print("Pfad:",i, path[i].x, path[i].y)
 
 
 
