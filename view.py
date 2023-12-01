@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QPushButton,
     QMessageBox,
+    QGraphicsPolygonItem,
     QGraphicsLineItem,
     QGraphicsTextItem,
     QGraphicsEllipseItem,
@@ -76,6 +77,7 @@ class PolygonView(QMainWindow):
         self.controller = controller
         self.agent_item = None
         self.polygon_item = None
+        self.grid_items= []
         self.pathitem = None
 
         # Raster- und Canvas-Größen
@@ -177,6 +179,27 @@ class PolygonView(QMainWindow):
                 x = vertex.x * self.cell_size
                 y = vertex.y * self.cell_size
                 self.scene.addRect(x, y, self.cell_size, self.cell_size, QPen(Qt.NoPen), QBrush(QColor(Qt.black)))
+
+
+    def draw_polygons(self, polygons):
+        # Entferne zuerst alle alten Polygone, wenn sie existieren
+        if len(self.grid_items) > 0:
+            for item in self.grid_items:
+                self.scene.removeItem(item)
+            self.grid_items.clear()
+
+        # Zeichne die neuen Polygone
+        for polygon in polygons:
+            qpoly = QPolygonF()
+            for point in polygon.exterior.coords:
+                qpoly.append(QPointF(point[0] * self.cell_size, point[1] * self.cell_size))
+
+            polygon_item = QGraphicsPolygonItem(qpoly)
+            polygon_item.setPen(QPen(QColor(Qt.blue), 2))
+            polygon_item.setBrush(QBrush(QColor(0, 0, 255, 100)))
+            self.scene.addItem(polygon_item)
+            self.grid_items.append(polygon_item)  # Füge das Item zur Liste hinzu
+
 
     def draw_polygon(self, vertices):
         if self.polygon_item is not None:
