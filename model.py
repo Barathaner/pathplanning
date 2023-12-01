@@ -85,6 +85,7 @@ class Model:
         self.agent_path = []
         self.agent = None
         self.gridrects = []
+        self.isinfield = False
         self.grid = []
         self.shapely_polygon = None  # Hinzugefügtes Attribut für das shapely Polygon
 
@@ -180,11 +181,20 @@ class Model:
             minx, miny, maxx, maxy = rect.bounds
 
             if reverse:
-                start_point = P(maxx, miny)
-                end_point = P(minx, miny)
+                
+                if self.polygon.to_shapely_polygon().contains(P(maxx + self.agent.width,miny)) :
+                    start_point = P(maxx, miny)
+                    end_point = P(minx, miny)
+                else:
+                    start_point = P(maxx-self.agent.width, miny)
+                    end_point = P(minx, miny)
             else:
-                start_point = P(minx, miny)
-                end_point = P(maxx, miny)
+                if self.polygon.to_shapely_polygon().contains(P(maxx + self.agent.width,miny)) :
+                    start_point = P(minx, miny)
+                    end_point = P(maxx, miny)
+                else:
+                    start_point = P(minx, miny)
+                    end_point = P(maxx-self.agent.width, miny)
 
             if not self.coverage_path or self.coverage_path[-1].distance(start_point) > 0:
                 self.coverage_path.append(start_point)
@@ -205,9 +215,11 @@ class Model:
         self.generate_waypoints()
         self.agent_path = self.a_star_search(
             (self.agent.position.x, self.agent.position.y), (self.coverage_path[0].x, self.coverage_path[0].y))
+        self.isinfield = True
         for i in range(len(self.coverage_path)-1):
             self.agent_path += self.a_star_search(
                 (self.coverage_path[i].x, self.coverage_path[i].y), (self.coverage_path[i+1].x, self.coverage_path[i+1].y))
+        self.isinfield = False
 
     def heuristic(self, a, b):
 
@@ -253,6 +265,6 @@ class Model:
             neighbor = (node[0] + direction[0], node[1] + direction[1])
             neighbor_point = P(neighbor[0], neighbor[1])
 
-            if self.polygon.to_shapely_polygon().intersects(neighbor_point):
+            if self.polygon.to_shapely_polygon().intersects(neighbor_point) or not self.isinfield:
                 neighbors.append(neighbor)
         return neighbors
