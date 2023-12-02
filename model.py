@@ -19,6 +19,18 @@ class AgentModel:
         self.position = Point(x, y)
 
 
+class WelcomeModel:
+    def __init__(self):
+        self.nodes = []
+        self.minx = 9999999
+        self.miny = 9999999
+        self.maxx = -9999999
+        self.maxy = -9999999
+
+    def create_agent(self, width, height, x, y):
+        self.agent = AgentModel(width, height, x, y)
+
+
 class PolygonModel:
     def __init__(self):
         self.nodes = []
@@ -47,8 +59,9 @@ class PolygonModel:
     def sort_nodes(self):
         if len(self.nodes) > 2:
             centroid = self.calculate_centroid()
-            self.nodes.sort(key=lambda point: self.calculate_angle(
-                point, centroid), reverse=True)
+            self.nodes.sort(
+                key=lambda point: self.calculate_angle(point, centroid), reverse=True
+            )
 
     def to_shapely_polygon(self):
         """Konvertiert das PolygonModel in ein shapely Polygon."""
@@ -88,9 +101,13 @@ class Model:
         self.isinfield = False
         self.grid = []
         self.shapely_polygon = None  # Hinzugefügtes Attribut für das shapely Polygon
+        self.reset_model()
 
     def create_agent(self, width, height, x, y):
         self.agent = AgentModel(width, height, x, y)
+
+    def remove_agent(self):
+        self.agent = None
 
     def create_grid_for_polygon(self):
         polygon = self.polygon.to_shapely_polygon()
@@ -101,8 +118,7 @@ class Model:
         while y + self.agent.height <= maxy:
             x = minx
             while x + self.agent.width <= maxx:
-                rect = geom.box(x, y, x + self.agent.width,
-                                y + self.agent.height)
+                rect = geom.box(x, y, x + self.agent.width, y + self.agent.height)
                 if polygon.contains(rect):
                     grid.append(rect)
                 x += self.agent.width
@@ -152,12 +168,11 @@ class Model:
         self.gridrects = self.grid.copy()
 
     def find_nearest_rectangle(self, current_rect, remaining_rects):
-        min_dist = float('inf')
+        min_dist = float("inf")
         nearest_rect = None
 
         current_minx, current_miny, current_maxx, current_maxy = current_rect.bounds
-        current_points = [P(current_minx, current_miny),
-                          P(current_maxx, current_maxy)]
+        current_points = [P(current_minx, current_miny), P(current_maxx, current_maxy)]
 
         for rect in remaining_rects:
             minx, miny, maxx, maxy = rect.bounds
@@ -194,7 +209,7 @@ class Model:
                     start_point = P(maxx, miny)
                     end_point = P(minx, miny)
                 else:
-                    start_point = P(maxx-self.agent.width, miny)
+                    start_point = P(maxx - self.agent.width, miny)
                     end_point = P(minx, miny)
             else:
                 if self.polygon.to_shapely_polygon().contains(agent_rect) :
@@ -202,7 +217,7 @@ class Model:
                     end_point = P(maxx, miny)
                 else:
                     start_point = P(minx, miny)
-                    end_point = P(maxx-self.agent.width, miny)
+                    end_point = P(maxx - self.agent.width, miny)
 
             self.add_point_to_path(start_point)
             self.add_point_to_path(end_point)
@@ -214,17 +229,31 @@ class Model:
                 self.grid.remove(next_rect)
                 self.grid.insert(0, next_rect)
 
+    def reset_model(self):
+        self.polygon = PolygonModel()
+        self.coverage_path = []
+        self.agent_path = []
+        self.agent = None
+        self.gridrects = []
+        self.isinfield = False
+        self.grid = []
+        self.shapely_polygon = None
+
     def plan_coverage_agent_path(self):
         self.agent_path = []
         self.create_grid_for_polygon()
         self.merge_rectangles()
         self.generate_waypoints()
         self.agent_path = self.a_star_search(
-            (self.agent.position.x, self.agent.position.y), (self.coverage_path[0].x, self.coverage_path[0].y))
+            (self.agent.position.x, self.agent.position.y),
+            (self.coverage_path[0].x, self.coverage_path[0].y),
+        )
         self.isinfield = True
-        for i in range(len(self.coverage_path)-1):
+        for i in range(len(self.coverage_path) - 1):
             self.agent_path += self.a_star_search(
-                (self.coverage_path[i].x, self.coverage_path[i].y), (self.coverage_path[i+1].x, self.coverage_path[i+1].y))
+                (self.coverage_path[i].x, self.coverage_path[i].y),
+                (self.coverage_path[i + 1].x, self.coverage_path[i + 1].y),
+            )
         self.isinfield = False
 
     def heuristic(self, a, b):
