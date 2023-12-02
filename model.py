@@ -258,8 +258,8 @@ class Model:
 
     def get_neighbors(self, node):
         """Bestimmt die Nachbarn eines Knotens im Raster."""
-        directions = [(self.agent.width, 0), (0, self.agent.height), (-self.agent.width, 0), (0, -self.agent.height),
-                      (-self.agent.width, -self.agent.height), (self.agent.width, self.agent.height)]  # 4-Wege-Nachbarschaft
+        directions = [(1, 0), (0, 1), (-1, 0), (0, -1),
+                      (-1, -1), (1, 1)]  # 4-Wege-Nachbarschaft
         neighbors = []
         for direction in directions:
             neighbor = (node[0] + direction[0], node[1] + direction[1])
@@ -268,3 +268,4 @@ class Model:
             if self.polygon.to_shapely_polygon().intersects(neighbor_point) or not self.isinfield:
                 neighbors.append(neighbor)
         return neighbors
+
