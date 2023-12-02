@@ -279,20 +279,31 @@ class PolygonView(QMainWindow):
             self.draw_polygon_vertices(vertices)
 
     def draw_agent(self, agent):
-        print("Agent:", agent)
         if agent is not None:
+            # Entferne den alten Agenten, falls vorhanden
             if self.agent_item is not None:
                 self.scene.removeItem(self.agent_item)
-
+            
             agent_x = agent.position.x * self.cell_size
             agent_y = agent.position.y * self.cell_size
             agent_width = agent.width * self.cell_size
             agent_height = agent.height * self.cell_size
 
-            agent_rect = QGraphicsRectItem(agent_x, agent_y, agent_width, agent_height)
-            agent_rect.setPen(QPen(QColor(Qt.blue)))
-            agent_rect.setBrush(QBrush(QColor(Qt.blue)))
-            self.agent_item = self.scene.addItem(agent_rect)
+            # Zeichne den neuen Agenten
+            polyvertices=[]
+            polyvertices.append(QPointF(agent_x, agent_y))
+            polyvertices.append(QPointF(agent_x+agent_width, agent_y))
+            polyvertices.append(QPointF(agent_x+agent_width, agent_y+agent_height))
+            polyvertices.append(QPointF(agent_x, agent_y+agent_height))
+            
+            qpoly= QPolygonF(polyvertices)
+            polygon_item = QGraphicsPolygonItem(qpoly)
+            polygon_item.setPen(QPen(QColor(Qt.green), 2))
+            polygon_item.setBrush(QBrush(QColor(0, 255, 0, 100)))
+            self.scene.addItem(polygon_item)
+            self.agent_item = polygon_item  # Aktualisiere self.agent_item
+            
+
 
     def update_agent_position(self):
         print("Update Agent Position")
