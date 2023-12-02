@@ -172,6 +172,11 @@ class Model:
 
         return nearest_rect
 
+    def add_point_to_path(self, point):
+        """Fügt einen Punkt zum Pfad hinzu, wenn er sich vom letzten Punkt unterscheidet."""
+        if not self.coverage_path or self.coverage_path[-1] != point:
+            self.coverage_path.append(point)
+
     def generate_waypoints(self):
         self.coverage_path = []
         reverse = False
@@ -179,27 +184,28 @@ class Model:
         while self.grid:
             rect = self.grid.pop(0)
             minx, miny, maxx, maxy = rect.bounds
+            agent_rect = geom.box(maxx, miny, 
+            maxx + self.agent.width, 
+            miny + self.agent.height)
 
             if reverse:
                 
-                if self.polygon.to_shapely_polygon().contains(P(maxx + self.agent.width,miny)) :
+                if self.polygon.to_shapely_polygon().contains(agent_rect) :
                     start_point = P(maxx, miny)
                     end_point = P(minx, miny)
                 else:
                     start_point = P(maxx-self.agent.width, miny)
                     end_point = P(minx, miny)
             else:
-                if self.polygon.to_shapely_polygon().contains(P(maxx + self.agent.width,miny)) :
+                if self.polygon.to_shapely_polygon().contains(agent_rect) :
                     start_point = P(minx, miny)
                     end_point = P(maxx, miny)
                 else:
                     start_point = P(minx, miny)
                     end_point = P(maxx-self.agent.width, miny)
 
-            if not self.coverage_path or self.coverage_path[-1].distance(start_point) > 0:
-                self.coverage_path.append(start_point)
-
-            self.coverage_path.append(end_point)
+            self.add_point_to_path(start_point)
+            self.add_point_to_path(end_point)
 
             reverse = not reverse
 
@@ -223,7 +229,16 @@ class Model:
 
     def heuristic(self, a, b):
 
+
+        agent_rect = geom.box(a[0], a[1], 
+                    a[0] + self.agent.width, 
+                    a[1] + self.agent.height)
+                    
+        if not self.polygon.to_shapely_polygon().contains(agent_rect) and self.isinfield:
+            return 99999999999
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+
 
     def a_star_search(self, start, goal):
         frontier = []
@@ -233,13 +248,12 @@ class Model:
 
         while frontier:
             current = heapq.heappop(frontier)[1]
-
             if current == goal:
                 break
 
             for next in self.get_neighbors(current):
                 # oder eine spezifische Kostenfunktion
-                new_cost = cost_so_far[current] + 1
+                new_cost = cost_so_far[current] + self.heuristic(current, next)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
                     priority = new_cost + self.heuristic(next, goal)
@@ -257,15 +271,16 @@ class Model:
         return path
 
     def get_neighbors(self, node):
-        """Bestimmt die Nachbarn eines Knotens im Raster."""
-        directions = [(1, 0), (0, 1), (-1, 0), (0, -1),
-                      (-1, -1), (1, 1)]  # 4-Wege-Nachbarschaft
+        directions = [(1, 0), (0, 1), (-1, 0), (0, -1), 
+                    (-1, -1), (1, 1), (-1, 1), (1, -1)]  # Erweiterte 8-Wege-Nachbarschaft
         neighbors = []
-        for direction in directions:
-            neighbor = (node[0] + direction[0], node[1] + direction[1])
-            neighbor_point = P(neighbor[0], neighbor[1])
 
-            if self.polygon.to_shapely_polygon().intersects(neighbor_point) or not self.isinfield:
-                neighbors.append(neighbor)
+        for direction in directions:
+            neighbor_x, neighbor_y = (node[0] + direction[0], node[1] + direction[1])
+
+            neighbors.append((neighbor_x, neighbor_y))
+
         return neighbors
+
+
 
