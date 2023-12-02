@@ -112,14 +112,14 @@ class Model:
         grid = []
 
         y = miny
-        while y + self.agent.height <= maxy:
+        while y  <= maxy:
             x = minx
-            while x + self.agent.width <= maxx:
+            while x <= maxx:
                 rect = geom.box(x, y, x + self.agent.width, y + self.agent.height)
                 if polygon.contains(rect):
                     grid.append(rect)
-                x += self.agent.width
-            y += self.agent.height
+                x += 1
+            y += 1
 
         self.grid = grid
 
@@ -191,40 +191,48 @@ class Model:
 
     def generate_waypoints(self):
         self.coverage_path = []
+
+        # Sortiere die Rechtecke nach Y und dann nach X
+        sorted_rects = sorted(self.grid, key=lambda r: (r.bounds[1], r.bounds[0]))
+
+        current_y = None
+        row_rects = []
         reverse = False
 
-        while self.grid:
-            rect = self.grid.pop(0)
-            minx, miny, maxx, maxy = rect.bounds
-            agent_rect = geom.box(maxx, miny, 
-            maxx + self.agent.width, 
-            miny + self.agent.height)
+        for rect in sorted_rects:
+            rect_y = rect.bounds[1]
 
-            if reverse:
-                
-                if self.polygon.to_shapely_polygon().contains(agent_rect) :
-                    start_point = P(maxx, miny)
-                    end_point = P(minx, miny)
-                else:
-                    start_point = P(maxx - self.agent.width, miny)
-                    end_point = P(minx, miny)
+            if current_y is None:
+                current_y = rect_y
+
+            if rect_y != current_y:
+                self.process_row(row_rects, reverse)
+                row_rects = [rect]
+                current_y = rect_y
+                reverse = not reverse
             else:
-                if self.polygon.to_shapely_polygon().contains(agent_rect) :
-                    start_point = P(minx, miny)
-                    end_point = P(maxx, miny)
-                else:
-                    start_point = P(minx, miny)
-                    end_point = P(maxx - self.agent.width, miny)
+                row_rects.append(rect)
 
-            self.add_point_to_path(start_point)
-            self.add_point_to_path(end_point)
+        # Verarbeite die letzte Zeile
+        if row_rects:
+            self.process_row(row_rects, reverse)
 
-            reverse = not reverse
+    def process_row(self, row_rects, reverse):
+        if not row_rects:
+            return
 
-            if self.grid:
-                next_rect = self.find_nearest_rectangle(rect, self.grid)
-                self.grid.remove(next_rect)
-                self.grid.insert(0, next_rect)
+        if reverse:
+            row_rects.reverse()
+
+        # Füge den Anfangspunkt der Zeile hinzu
+        first_rect = row_rects[0]
+        self.coverage_path.append(Point(first_rect.bounds[0], first_rect.bounds[1]))
+
+        # Füge den Endpunkt der Zeile hinzu
+        last_rect = row_rects[-1]
+        self.coverage_path.append(Point(last_rect.bounds[0], last_rect.bounds[1]))
+
+
 
     def reset_model(self):
         self.polygon = PolygonModel()
