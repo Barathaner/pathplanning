@@ -1,8 +1,10 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from model import Model
+from model import WelcomeModel
 from view import PolygonView, WelcomeView
 from controller import PolygonController
+from controller import WelcomeController
 
 
 def main():
@@ -16,7 +18,10 @@ def main():
         controller.view = view
         view.show()
 
-    welcome_view = WelcomeView(show_polygon_view)
+    welcome_model = WelcomeModel()
+    welcome_controller = WelcomeController(welcome_model, None)
+    welcome_view = WelcomeView(show_polygon_view, welcome_controller)
+    welcome_controller.view = welcome_view
     welcome_view.show()
 
     sys.exit(app.exec_())
