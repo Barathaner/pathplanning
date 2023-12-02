@@ -106,9 +106,6 @@ class Model:
     def create_agent(self, width, height, x, y):
         self.agent = AgentModel(width, height, x, y)
 
-    def remove_agent(self):
-        self.agent = None
-
     def create_grid_for_polygon(self):
         polygon = self.polygon.to_shapely_polygon()
         minx, miny, maxx, maxy = polygon.bounds

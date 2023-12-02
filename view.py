@@ -42,6 +42,9 @@ class AgentInputDialog(QDialog):
             # Eingabe auf ganze Zahlen beschränken
             lineEdit.setValidator(QIntValidator())
 
+            # Setze den Standardwert auf 2
+            lineEdit.setText("2")
+
             self.lineEdits.append(lineEdit)
             self.layout.addWidget(lineEdit)
 
@@ -294,23 +297,29 @@ class PolygonView(QMainWindow):
     def update_agent_position(self):
         print("Update Agent Position")
 
-        if self.controller.model.agent:
-            print(self.controller.model.agent)
-            # Holen Sie die aktuellen Koordinaten des Agenten
-            current_x = self.controller.model.agent.position.x
-            current_y = self.controller.model.agent.position.y
-            current_width = self.controller.model.agent.width
-            current_height = self.controller.model.agent.height
+        if not self.controller.model.agent_path:
+            print("Agent Path is empty, stopping animation.")
+            self.timer.stop()
+            return
 
-            # Entferne den aktuellen Agenten
-            self.controller.remove_agent()
+        # Holen Sie die aktuellen Koordinaten des Agenten aus dem Pfad
+        current_position = self.controller.model.agent_path.pop(0)
+        current_x, current_y = current_position.x, current_position.y
 
-            # Berechne die neuen Koordinaten des Agenten
-            new_x = current_x + 1
-            new_y = current_y + 1
+        # Entfernen Sie den aktuellen Agenten aus der Szene
+        if self.agent_item is not None:
+            self.scene.removeItem(self.agent_item)
 
-            # Erstelle einen neuen Agenten an den neuen Koordinaten
-            self.controller.create_agent(current_width, current_height, new_x, new_y)
+        # Erstelle einen neuen Agenten an den neuen Koordinaten
+        self.controller.create_agent(
+            self.controller.model.agent.width,
+            self.controller.model.agent.height,
+            current_x,
+            current_y,
+        )
+
+        # Zeichnen Sie den neuen Agenten in der Szene
+        self.draw_agent(self.controller.model.agent)
 
     def start_agent_animation(self):
         self.timer.start(500)
