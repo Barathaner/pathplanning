@@ -31,7 +31,6 @@ class Model:
         self.coverage_path = []
         self.agent_path = []
         self.agent = None
-        self.gridrects = []
         self.isinfield = False
         self.grid = []
         self.shapely_polygon = None
@@ -48,7 +47,6 @@ class Model:
         try:
             self.agent_path = []
             self.create_grid_for_polygon()
-            self.merge_rectangles()
             self.generate_waypoints()
             self.agent_path = self.a_star_search(
                 (self.agent.position.x, self.agent.position.y),
@@ -82,29 +80,6 @@ class Model:
 
         self.grid = grid
 
-    def merge_rectangles(self):
-        try:
-            i = 0
-            while i < len(self.grid) - 1:
-                rect1 = self.grid[i]
-                rect2 = self.grid[i + 1]
-
-                # Extract the bounds of the first and second rectangles
-                minx1, miny1, maxx1, maxy1 = rect1.bounds
-                minx2, miny2, maxx2, maxy2 = rect2.bounds
-
-                # Check if they touch each other in the X-direction
-                if maxx1 == minx2 and (miny1 == miny2 and maxy1 == maxy2):
-                    # Merge the rectangles and keep only the exterior coordinates
-                    merged_rect = geom.box(min(minx1, minx2), min(miny1, miny2), 
-                                        max(maxx1, maxx2), max(maxy1, maxy2))
-                    self.grid[i] = merged_rect
-                    del self.grid[i + 1]
-                else:
-                    i += 1
-            self.gridrects = self.grid.copy()
-        except Exception as e:
-            print(f"Error in merge_rectangles: {e}")
 
 
     def generate_waypoints(self):

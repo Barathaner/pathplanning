@@ -12,7 +12,7 @@ class PolygonController:
 
     def handle_enter_pressed(self):
         self.model.plan_coverage_agent_path()
-        self.view.draw_polygons(self.model.gridrects)
+        self.view.draw_polygons(self.model.grid)
         self.view.draw_path(self.model.agent_path)
 
     def create_agent(self, width, height, x, y):
