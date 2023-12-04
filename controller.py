@@ -1,4 +1,3 @@
-from model import Model
 from view import PolygonView
 
 
@@ -26,7 +25,7 @@ class PolygonController:
 
     def reset_grid(self):
         self.view.close()
-        self.model = Model()
+        self.model.reset_model()
         self.controller = PolygonController(self.model, None)
         self.view = PolygonView(self.controller)
         self.controller.view = self.view
