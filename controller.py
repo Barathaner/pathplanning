@@ -12,8 +12,17 @@ class PolygonController:
 
     def handle_enter_pressed(self):
         self.model.plan_coverage_agent_path()
+
+        if self.view.show_agent_path_checkbox.isChecked():
+            path_to_draw = self.model.agent_path
+        elif self.view.show_coverage_path_checkbox.isChecked():
+            path_to_draw = self.model.coverage_path
+        else:
+            # Default to agent path if neither checkbox is checked
+            path_to_draw = self.model.agent_path
+
         self.view.draw_polygons(self.model.grid)
-        self.view.draw_path(self.model.agent_path)
+        self.view.draw_path(path_to_draw)
 
     def create_agent(self, width, height, x, y):
         self.model.create_agent(width, height, x, y)
