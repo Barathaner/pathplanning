@@ -1,3 +1,4 @@
+# model.py
 import numpy as np
 import shapely.geometry as geom
 import heapq
@@ -34,15 +35,18 @@ class Model:
         self.isinfield = False
         self.grid = []
         self.shapely_polygon = None
-        
+
     def convert_tuple_to_point(self):
         try:
-            newpath = [geom.Point(p[0], p[1]) for p in self.coverage_path if isinstance(p, tuple) and len(p) == 2]
+            newpath = [
+                geom.Point(p[0], p[1])
+                for p in self.coverage_path
+                if isinstance(p, tuple) and len(p) == 2
+            ]
             self.coverage_path = newpath
         except Exception as e:
             print(f"Error in convert_tuple_to_point: {e}")
 
-            
     def plan_coverage_agent_path(self):
         try:
             self.agent_path = []
@@ -71,8 +75,7 @@ class Model:
         while y <= maxy:
             x = minx
             while x <= maxx:
-                rect = geom.box(x, y, x + self.agent.width,
-                                y + self.agent.height)
+                rect = geom.box(x, y, x + self.agent.width, y + self.agent.height)
                 if polygon.contains(rect):
                     grid.append(rect)
                 x += 1
@@ -80,14 +83,11 @@ class Model:
 
         self.grid = grid
 
-
-
     def generate_waypoints(self):
         self.coverage_path = []
 
         # Sortiere die Rechtecke nach Y und dann nach X
-        sorted_rects = sorted(
-            self.grid, key=lambda r: (r.bounds[1], r.bounds[0]))
+        sorted_rects = sorted(self.grid, key=lambda r: (r.bounds[1], r.bounds[0]))
 
         current_y = None
         row_rects = []
@@ -121,23 +121,27 @@ class Model:
 
             # Füge den Anfangspunkt der Zeile hinzu
             first_rect = row_rects[0]
-            self.coverage_path.append(geom.Point(
-                first_rect.bounds[0], first_rect.bounds[1]))
+            self.coverage_path.append(
+                geom.Point(first_rect.bounds[0], first_rect.bounds[1])
+            )
 
             # Füge den Endpunkt der Zeile hinzu
             last_rect = row_rects[-1]
-            self.coverage_path.append(geom.Point(
-                last_rect.bounds[0], last_rect.bounds[1]))
+            self.coverage_path.append(
+                geom.Point(last_rect.bounds[0], last_rect.bounds[1])
+            )
         except Exception as e:
             print(f"Error in process_row: {e}")
 
     def heuristic(self, a, b):
+        agent_rect = geom.box(
+            a[0], a[1], a[0] + self.agent.width, a[1] + self.agent.height
+        )
 
-        agent_rect = geom.box(a[0], a[1],
-                              a[0] + self.agent.width,
-                              a[1] + self.agent.height)
-
-        if not self.polygon.to_shapely_polygon().contains(agent_rect) and self.isinfield:
+        if (
+            not self.polygon.to_shapely_polygon().contains(agent_rect)
+            and self.isinfield
+        ):
             return 99999999999
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
@@ -172,13 +176,23 @@ class Model:
 
     def get_neighbors(self, node):
         try:
-            directions = [(1, 0), (0, 1), (-1, 0), (0, -1),
-                        (-1, -1), (1, 1), (-1, 1), (1, -1)]  # Erweiterte 8-Wege-Nachbarschaft
+            directions = [
+                (1, 0),
+                (0, 1),
+                (-1, 0),
+                (0, -1),
+                (-1, -1),
+                (1, 1),
+                (-1, 1),
+                (1, -1),
+            ]  # Erweiterte 8-Wege-Nachbarschaft
             neighbors = []
 
             for direction in directions:
                 neighbor_x, neighbor_y = (
-                    node[0] + direction[0], node[1] + direction[1])
+                    node[0] + direction[0],
+                    node[1] + direction[1],
+                )
 
                 neighbors.append((neighbor_x, neighbor_y))
 

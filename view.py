@@ -119,20 +119,6 @@ class PolygonView(QMainWindow):
         self.scene.setSceneRect(0, 0, self.canvas_size, self.canvas_size)
         self.view = QGraphicsView(self.scene, self)
 
-        # Set the background image
-        background_image = "farmImage.jpg"  # Replace with the actual path to your image
-        pixmap = QPixmap(self.canvas_size, self.canvas_size)
-        pixmap.fill(
-            Qt.transparent
-        )  # Fill with transparency, change to the desired background color if needed
-        painter = QPainter(pixmap)
-        painter.drawPixmap(
-            0, 0, self.canvas_size, self.canvas_size, QPixmap(background_image)
-        )
-        painter.end()
-        background_brush = QBrush(pixmap)
-        self.view.setBackgroundBrush(background_brush)
-
         # Create the buttons
         self.start_button = QPushButton("Draw Grid", self)
         self.restart_button = QPushButton("Restart", self)
@@ -165,18 +151,27 @@ class PolygonView(QMainWindow):
         self.show_coverage_path_checkbox = QCheckBox("Show coverage_path", self)
         self.show_polygons_checkbox = QCheckBox("Show polygons", self)
         self.show_grid_checkbox = QCheckBox("Show grid", self)
+        self.show_background_checkbox = QCheckBox(
+            "Show background", self
+        )  # Add this line
 
         # Set the default state for the checkboxes
         self.show_agent_path_checkbox.setChecked(True)
         self.show_coverage_path_checkbox.setChecked(False)
         self.show_polygons_checkbox.setChecked(True)
         self.show_grid_checkbox.setChecked(False)  # Default to showing the grid
+        self.show_background_checkbox.setChecked(
+            True
+        )  # Default to showing the background image
 
         # Configure checkbox mutual exclusion
         self.show_agent_path_checkbox.toggled.connect(self.update_checkboxes)
         self.show_coverage_path_checkbox.toggled.connect(self.update_checkboxes)
         self.show_polygons_checkbox.stateChanged.connect(self.update_checkboxes)
         self.show_grid_checkbox.stateChanged.connect(self.update_checkboxes)
+        self.show_background_checkbox.stateChanged.connect(
+            self.update_checkboxes
+        )  # Add this line
 
         # Create a QHBoxLayout for the checkboxes
         checkbox_layout = QHBoxLayout()
@@ -184,6 +179,7 @@ class PolygonView(QMainWindow):
         checkbox_layout.addWidget(self.show_coverage_path_checkbox)
         checkbox_layout.addWidget(self.show_polygons_checkbox)
         checkbox_layout.addWidget(self.show_grid_checkbox)
+        checkbox_layout.addWidget(self.show_background_checkbox)  # Add this line
 
         # Create a QVBoxLayout for buttons and checkboxes
         main_layout = QVBoxLayout()
@@ -208,31 +204,60 @@ class PolygonView(QMainWindow):
         self.view.setMouseTracking(True)
         self.view.mousePressEvent = self.mousePressEvent
 
+        # Check if the "Show grid" checkbox is checked
+        # if self.show_grid_checkbox.isChecked():
+        for i in range(self.raster_size + 1):
+            # Vertikale Linien
+            self.scene.addLine(
+                i * self.cell_size,
+                0,
+                i * self.cell_size,
+                self.canvas_size,
+                QPen(QColor(220, 220, 220)),
+            )
+            # Horizontale Linien
+            self.scene.addLine(
+                0,
+                i * self.cell_size,
+                self.canvas_size,
+                i * self.cell_size,
+                QPen(QColor(220, 220, 220)),
+            )
+
         self.draw_grid()
 
     def startGrid(self):
         self.controller.handle_enter_pressed()
 
     def draw_grid(self):
-        # Check if the "Show grid" checkbox is checked
-        if self.show_grid_checkbox.isChecked():
-            for i in range(self.raster_size + 1):
-                # Vertikale Linien
-                self.scene.addLine(
-                    i * self.cell_size,
-                    0,
-                    i * self.cell_size,
-                    self.canvas_size,
-                    QPen(QColor(220, 220, 220)),
-                )
-                # Horizontale Linien
-                self.scene.addLine(
-                    0,
-                    i * self.cell_size,
-                    self.canvas_size,
-                    i * self.cell_size,
-                    QPen(QColor(220, 220, 220)),
-                )
+        # Verstecke alle Linien
+        for item in self.scene.items():
+            if isinstance(item, QGraphicsLineItem):
+                if self.show_grid_checkbox.isChecked():
+                    item.show()
+                else:
+                    item.hide()
+
+        # Check if the "Show background" checkbox is checked
+        if self.show_background_checkbox.isChecked():
+            # Set the background image
+            background_image = (
+                "farmImage.jpg"  # Replace with the actual path to your image
+            )
+        else:
+            background_image = None
+
+        pixmap = QPixmap(self.canvas_size, self.canvas_size)
+        pixmap.fill(
+            Qt.transparent
+        )  # Fill with transparency, change to the desired background color if needed
+        painter = QPainter(pixmap)
+        painter.drawPixmap(
+            0, 0, self.canvas_size, self.canvas_size, QPixmap(background_image)
+        )
+        painter.end()
+        background_brush = QBrush(pixmap)
+        self.view.setBackgroundBrush(background_brush)
 
     def draw_tractor(self, agent):
         # Lade das Traktor-Bild
@@ -349,6 +374,9 @@ class PolygonView(QMainWindow):
 
         # Rufe die draw_grid-Funktion auf, um das Gitter neu zu zeichnen
         self.startGrid()
+
+        # Rufe die draw_grid-Funktion auf, um das Gitter neu zu zeichnen
+        self.draw_grid()
 
     def draw_polygon_vertices(self, vertices):
         for vertex in vertices:
@@ -502,6 +530,8 @@ class WelcomeView(QWidget):
             lineEdit = QLineEdit(left_widget)
             # Eingabe auf ganze Zahlen beschränken
             lineEdit.setValidator(QIntValidator())
+            # Set the default value
+            lineEdit.setText("2")
             self.lineEdits.append(lineEdit)
             left_layout.addWidget(lineEdit)
 
@@ -541,25 +571,46 @@ class WelcomeView(QWidget):
         # Setze die gewünschte Größe für das Welcome-Fenster
         self.resize(1200, 600)
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            # Rufe die click-Methode des Start-Buttons auf
-            start_button = self.findChild(QPushButton, "StartButton")
-            if start_button:
-                start_button.click()
+    def start_pathplanning(self):
+        # Extrahiere die Werte aus den LineEdits
+        agent_width_text = self.lineEdits[0].text()
+        agent_height_text = self.lineEdits[1].text()
+        agent_x_text = self.lineEdits[2].text()
+        agent_y_text = self.lineEdits[3].text()
 
-    def close_welcome_view(self):
-        self.close()
-        inputs = [lineEdit.text() for lineEdit in self.lineEdits]
+        # Überprüfe, ob alle Eingaben vorhanden sind
+        if all([agent_width_text, agent_height_text, agent_x_text, agent_y_text]):
+            # Wenn alle Eingaben vorhanden sind, konvertiere sie in Ganzzahlen
+            agent_width = int(agent_width_text)
+            agent_height = int(agent_height_text)
+            agent_x = int(agent_x_text)
+            agent_y = int(agent_y_text)
 
-        # Überprüfe, ob alle Eingabefelder Werte enthalten
-        if all(inputs):
-            try:
-                # Versuche die eingegebenen Werte in Ganzzahlen umzuwandeln
-                inputs_as_int = [int(value) for value in inputs]
-                # Rufe die create_agent-Methode des Controllers auf
-                print("Eingegebene Werte:", inputs_as_int)
-                # self.controller.create_agent(*inputs_as_int)
-                self.close()  # Schließe das Welcome-Fenster
-            except ValueError:
-                QMessageBox.warning(self, "Error", "Please enter valid integers.")
+            self.controller.start_pathplanning(
+                agent_width, agent_height, agent_x, agent_y
+            )
+        else:
+            self.controller.start_pathplanning(0, 0, 0, 0)
+
+    # def keyPressEvent(self, event):
+    #     if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+    #         # Rufe die click-Methode des Start-Buttons auf
+    #         start_button = self.findChild(QPushButton, "StartButton")
+    #         if start_button:
+    #             start_button.click()
+
+    # def close_welcome_view(self):
+    #     self.close()
+    #     inputs = [lineEdit.text() for lineEdit in self.lineEdits]
+
+    #     # Überprüfe, ob alle Eingabefelder Werte enthalten
+    #     if all(inputs):
+    #         try:
+    #             # Versuche die eingegebenen Werte in Ganzzahlen umzuwandeln
+    #             inputs_as_int = [int(value) for value in inputs]
+    #             # Rufe die create_agent-Methode des Controllers auf
+    #             print("Eingegebene Werte:", inputs_as_int)
+    #             # self.controller.create_agent(*inputs_as_int)
+    #             self.close()  # Schließe das Welcome-Fenster
+    #         except ValueError:
+    #             QMessageBox.warning(self, "Error", "Please enter valid integers.")
