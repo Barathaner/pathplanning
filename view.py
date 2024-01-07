@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QCheckBox,
     QGraphicsPixmapItem,
+    QShortcut,
 )
 from PyQt5.QtCore import Qt, QPointF, QTimer, QCoreApplication, QRectF
 from PyQt5.QtGui import *
@@ -99,8 +100,6 @@ class PolygonView(QMainWindow):
 
         self.controller = controller
 
-        self.tractor_item = None
-
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_agent_position)
         self.agent_speed = 1
@@ -120,13 +119,12 @@ class PolygonView(QMainWindow):
         self.view = QGraphicsView(self.scene, self)
 
         # Create the buttons
-        self.start_button = QPushButton("Draw Grid", self)
+        self.start_button = QPushButton("Draw Path", self)
         self.restart_button = QPushButton("Restart", self)
         self.AgentInfos_button = QPushButton("AgentInfos", self)
         self.start_agent_button = QPushButton("Start Agent", self)
         self.stop_agent_button = QPushButton("Stop Agent", self)
         self.end_button = QPushButton("End", self)
-        self.help_button = QPushButton("?", self)
 
         # Create a QHBoxLayout for the buttons
         button_layout = QHBoxLayout()
@@ -136,7 +134,6 @@ class PolygonView(QMainWindow):
         button_layout.addWidget(self.start_agent_button)
         button_layout.addWidget(self.stop_agent_button)
         button_layout.addWidget(self.end_button)
-        button_layout.addWidget(self.help_button)
 
         self.start_agent_button.clicked.connect(self.start_agent_animation)
         self.stop_agent_button.clicked.connect(self.stop_agent_animation)
@@ -144,14 +141,13 @@ class PolygonView(QMainWindow):
         self.AgentInfos_button.clicked.connect(self.openNumbersDialog)
         self.start_button.clicked.connect(self.startGrid)
         self.restart_button.clicked.connect(controller.reset_grid)
-        self.help_button.clicked.connect(self.show_explanation_dialog)
 
         # Create the checkboxes
         self.show_agent_path_checkbox = QCheckBox("Show agent_path", self)
         self.show_coverage_path_checkbox = QCheckBox("Show coverage_path", self)
         self.show_polygons_checkbox = QCheckBox("Show polygons", self)
         self.show_grid_checkbox = QCheckBox("Show grid", self)
-        self.show_background_checkbox = QCheckBox("Show background", self)
+        self.show_background_checkbox = QCheckBox("Show example Image", self)
 
         # Set the default state for the checkboxes
         self.show_agent_path_checkbox.setChecked(True)
@@ -234,8 +230,9 @@ class PolygonView(QMainWindow):
 
         # Check whether a path exists before you try to draw it
         agent_path = self.controller.get_agent_path()
+
         if agent_path:
-            self.draw_path(agent_path)
+            self.controller.redraw_path()
 
         # Check if the "Show background" checkbox is checked
         if self.show_background_checkbox.isChecked():
@@ -257,36 +254,6 @@ class PolygonView(QMainWindow):
         painter.end()
         background_brush = QBrush(pixmap)
         self.view.setBackgroundBrush(background_brush)
-
-    def draw_tractor(self, agent):
-        # Lade das Traktor-Bild
-        tractor_pixmap = QPixmap("tractor.jpg")
-
-        if tractor_pixmap.isNull():
-            print("Error loading tractor image")
-            return
-
-        # Berechne die skalierten Abmessungen
-        scaled_width = agent.width * self.cell_size
-        scaled_height = agent.height * self.cell_size
-
-        # Skaliere das Bild mit einer Transformation
-        transform = QTransform().scale(
-            scaled_width / tractor_pixmap.width(),
-            scaled_height / tractor_pixmap.height(),
-        )
-        scaled_pixmap = tractor_pixmap.transformed(transform, Qt.SmoothTransformation)
-
-        # Erstelle ein QGraphicsPixmapItem mit dem skalierten QPixmap
-        tractor_item = QGraphicsPixmapItem(scaled_pixmap)
-
-        # Füge das QGraphicsPixmapItem zur Szene hinzu
-        self.scene.addItem(tractor_item)
-
-        # Positioniere das QGraphicsPixmapItem entsprechend den Agenteninformationen
-        tractor_item.setPos(
-            agent.position.x * self.cell_size, agent.position.y * self.cell_size
-        )
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_X:
@@ -338,7 +305,7 @@ class PolygonView(QMainWindow):
                 label.setPos(path[i].x * self.cell_size, path[i].y * self.cell_size)
                 self.scene.addItem(label)
                 self.pathitem.append(label)
-                print("Pfad:", i, path[i].x, path[i].y)
+                print("Path:", i, path[i].x, path[i].y)
 
     def openNumbersDialog(self):
         dialog = AgentInputDialog(self)
@@ -389,10 +356,6 @@ class PolygonView(QMainWindow):
                 QPen(Qt.NoPen),
                 QBrush(QColor(Qt.black)),
             )
-
-    def show_explanation_dialog(self):
-        explanation_dialog = ExplanationDialog(self)
-        explanation_dialog.exec_()
 
     def draw_polygons(self, polygons):
         # First remove all old polygons, if they exist
@@ -457,9 +420,6 @@ class PolygonView(QMainWindow):
             self.scene.addItem(polygon_item)
             self.agent_item = polygon_item
 
-        # Zeichne den Traktor
-        # self.draw_tractor(agent)
-
     def update_agent_position(self):
         print("Update Agent Position")
 
@@ -483,13 +443,6 @@ class PolygonView(QMainWindow):
             current_x,
             current_y,
         )
-
-        # Entferne auch das vorherige Traktor-Bild
-        if self.tractor_item is not None:
-            self.scene.removeItem(self.tractor_item)
-
-        # Zeichnen Sie das neue Traktor-Bild in der Szene
-        # self.draw_tractor(self.controller.model.agent)
 
     def start_agent_animation(self):
         self.timer.start(500)
@@ -561,9 +514,11 @@ class WelcomeView(QWidget):
 
         start_button = QPushButton("Start")
         start_button.clicked.connect(start_callback)
-        start_button.setFocusPolicy(Qt.StrongFocus)
         self.layout.addWidget(start_button)
         start_button.setObjectName("StartButton")
+
+        shortcut = QShortcut(QKeySequence(Qt.Key_Return), self)
+        shortcut.activated.connect(start_button.click)
 
         self.setLayout(self.layout)
 
@@ -588,26 +543,3 @@ class WelcomeView(QWidget):
             )
         else:
             self.controller.start_pathplanning(0, 0, 0, 0)
-
-    # def keyPressEvent(self, event):
-    #     if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-    #         # Rufe die click-Methode des Start-Buttons auf
-    #         start_button = self.findChild(QPushButton, "StartButton")
-    #         if start_button:
-    #             start_button.click()
-
-    # def close_welcome_view(self):
-    #     self.close()
-    #     inputs = [lineEdit.text() for lineEdit in self.lineEdits]
-
-    #     # Überprüfe, ob alle Eingabefelder Werte enthalten
-    #     if all(inputs):
-    #         try:
-    #             # Versuche die eingegebenen Werte in Ganzzahlen umzuwandeln
-    #             inputs_as_int = [int(value) for value in inputs]
-    #             # Rufe die create_agent-Methode des Controllers auf
-    #             print("Eingegebene Werte:", inputs_as_int)
-    #             # self.controller.create_agent(*inputs_as_int)
-    #             self.close()  # Schließe das Welcome-Fenster
-    #         except ValueError:
-    #             QMessageBox.warning(self, "Error", "Please enter valid integers.")

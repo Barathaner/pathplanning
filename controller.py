@@ -73,3 +73,16 @@ class PolygonController:
 
     def get_agent_path(self):
         return self.model.agent_path
+
+    def redraw_path(self):
+        self.model.plan_coverage_agent_path()
+
+        if self.view.show_agent_path_checkbox.isChecked():
+            path_to_draw = self.model.agent_path
+        elif self.view.show_coverage_path_checkbox.isChecked():
+            path_to_draw = self.model.coverage_path
+        else:
+            # Default to agent path if neither checkbox is checked
+            path_to_draw = self.model.agent_path
+
+        self.view.draw_path(path_to_draw)
