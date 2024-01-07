@@ -41,20 +41,20 @@ class AgentInputDialog(QDialog):
             self.layout.addWidget(QLabel(label_text))
             lineEdit = QLineEdit(self)
 
-            # Eingabe auf ganze Zahlen beschränken
+            # Restrict input to whole numbers
             lineEdit.setValidator(QIntValidator())
 
-            # Setze den Standardwert auf 2
+            # Set the default value to 2
             lineEdit.setText("2")
 
             self.lineEdits.append(lineEdit)
             self.layout.addWidget(lineEdit)
 
-        # OK und Cancel Buttons
+        # OK and Cancel Buttons
         self.buttons = QPushButton("OK", self)
         self.buttons.clicked.connect(
             self.on_ok_clicked
-        )  # Verbinde mit benutzerdefinierter Methode
+        )  # Connect with user-defined method
         self.layout.addWidget(self.buttons)
 
         self.setLayout(self.layout)
@@ -62,11 +62,11 @@ class AgentInputDialog(QDialog):
     def on_ok_clicked(self):
         inputs = self.getValues()
 
-        # Überprüfe, ob alle Eingabefelder Werte enthalten
+        # Check whether all input fields contain values
         if all(inputs):
             try:
                 inputs_as_int = [int(value) for value in inputs]
-                self.accept()  # Schließe das Dialogfenster
+                self.accept()
             except ValueError:
                 QMessageBox.warning(self, "Error", "Please enter valid integers.")
         else:
@@ -99,18 +99,18 @@ class PolygonView(QMainWindow):
 
         self.controller = controller
 
-        self.tractor_item = None  # Fügen Sie diese Zeile hinzu
+        self.tractor_item = None
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_agent_position)
-        self.agent_speed = 1  # Geschwindigkeit des Agenten (kann angepasst werden)
+        self.agent_speed = 1
 
         self.agent_item = None
         self.polygon_item = None
         self.grid_items = []
         self.pathitem = None
 
-        # Raster- und Canvas-Größen
+        # Raster and canvas sizes
         self.raster_size = 32
         self.canvas_size = 1000
         self.cell_size = self.canvas_size / self.raster_size
@@ -151,27 +151,21 @@ class PolygonView(QMainWindow):
         self.show_coverage_path_checkbox = QCheckBox("Show coverage_path", self)
         self.show_polygons_checkbox = QCheckBox("Show polygons", self)
         self.show_grid_checkbox = QCheckBox("Show grid", self)
-        self.show_background_checkbox = QCheckBox(
-            "Show background", self
-        )  # Add this line
+        self.show_background_checkbox = QCheckBox("Show background", self)
 
         # Set the default state for the checkboxes
         self.show_agent_path_checkbox.setChecked(True)
         self.show_coverage_path_checkbox.setChecked(False)
         self.show_polygons_checkbox.setChecked(True)
-        self.show_grid_checkbox.setChecked(False)  # Default to showing the grid
-        self.show_background_checkbox.setChecked(
-            True
-        )  # Default to showing the background image
+        self.show_grid_checkbox.setChecked(False)
+        self.show_background_checkbox.setChecked(True)
 
         # Configure checkbox mutual exclusion
         self.show_agent_path_checkbox.toggled.connect(self.update_checkboxes)
         self.show_coverage_path_checkbox.toggled.connect(self.update_checkboxes)
         self.show_polygons_checkbox.stateChanged.connect(self.update_checkboxes)
         self.show_grid_checkbox.stateChanged.connect(self.update_checkboxes)
-        self.show_background_checkbox.stateChanged.connect(
-            self.update_checkboxes
-        )  # Add this line
+        self.show_background_checkbox.stateChanged.connect(self.update_checkboxes)
 
         # Create a QHBoxLayout for the checkboxes
         checkbox_layout = QHBoxLayout()
@@ -179,7 +173,7 @@ class PolygonView(QMainWindow):
         checkbox_layout.addWidget(self.show_coverage_path_checkbox)
         checkbox_layout.addWidget(self.show_polygons_checkbox)
         checkbox_layout.addWidget(self.show_grid_checkbox)
-        checkbox_layout.addWidget(self.show_background_checkbox)  # Add this line
+        checkbox_layout.addWidget(self.show_background_checkbox)
 
         # Create a QVBoxLayout for buttons and checkboxes
         main_layout = QVBoxLayout()
@@ -207,7 +201,7 @@ class PolygonView(QMainWindow):
         # Check if the "Show grid" checkbox is checked
         # if self.show_grid_checkbox.isChecked():
         for i in range(self.raster_size + 1):
-            # Vertikale Linien
+            # Vertical lines
             self.scene.addLine(
                 i * self.cell_size,
                 0,
@@ -215,7 +209,7 @@ class PolygonView(QMainWindow):
                 self.canvas_size,
                 QPen(QColor(220, 220, 220)),
             )
-            # Horizontale Linien
+            # Horizontal lines
             self.scene.addLine(
                 0,
                 i * self.cell_size,
@@ -230,13 +224,18 @@ class PolygonView(QMainWindow):
         self.controller.handle_enter_pressed()
 
     def draw_grid(self):
-        # Verstecke alle Linien
+        # Hide all lines
         for item in self.scene.items():
             if isinstance(item, QGraphicsLineItem):
                 if self.show_grid_checkbox.isChecked():
                     item.show()
                 else:
                     item.hide()
+
+        # Check whether a path exists before you try to draw it
+        agent_path = self.controller.get_agent_path()
+        if agent_path:
+            self.draw_path(agent_path)
 
         # Check if the "Show background" checkbox is checked
         if self.show_background_checkbox.isChecked():
@@ -297,20 +296,20 @@ class PolygonView(QMainWindow):
             self.controller.handle_enter_pressed()
 
     def draw_path(self, path):
-        # Entfernen Sie zuerst alle alten Linien, Punkte und Labels, wenn sie existieren
+        # First remove all old lines, dots and labels, if they exist
         if self.pathitem:
             for item in self.pathitem:
                 self.scene.removeItem(item)
             self.pathitem.clear()
 
-        # Initialisieren Sie self.pathitem als Liste, wenn sie noch nicht existiert
+        # Initialise self.pathitem as a list if it does not yet exist
         if self.pathitem is None:
             self.pathitem = []
 
-        # Zeichnen Sie den neuen Pfad
+        # Draw the new path
         if path:
             for i in range(len(path)):
-                # Zeichnen der Linie zwischen den Punkten
+                # Draw the line between the points
                 if i < len(path) - 1:
                     line = QGraphicsLineItem(
                         path[i].x * self.cell_size,
@@ -322,8 +321,8 @@ class PolygonView(QMainWindow):
                     self.scene.addItem(line)
                     self.pathitem.append(line)
 
-                # Zeichnen des Punktes
-                point_size = 5  # Die Größe des Punktes, kann angepasst werden
+                # Drawing the point
+                point_size = 5
                 point = QGraphicsEllipseItem(
                     path[i].x * self.cell_size - point_size / 2,
                     path[i].y * self.cell_size - point_size / 2,
@@ -334,7 +333,7 @@ class PolygonView(QMainWindow):
                 self.scene.addItem(point)
                 self.pathitem.append(point)
 
-                # Hinzufügen des Labels
+                # Adding the label
                 label = QGraphicsTextItem(str(i))
                 label.setPos(path[i].x * self.cell_size, path[i].y * self.cell_size)
                 self.scene.addItem(label)
@@ -363,19 +362,19 @@ class PolygonView(QMainWindow):
             sender_checkbox == self.show_agent_path_checkbox
             and self.show_agent_path_checkbox.isChecked()
         ):
-            # Wenn show_agent_path_checkbox aktiviert ist, deaktiviere show_coverage_path_checkbox
+            # If show_agent_path_checkbox is activated, deactivate show_coverage_path_checkbox
             self.show_coverage_path_checkbox.setChecked(False)
         elif (
             sender_checkbox == self.show_coverage_path_checkbox
             and self.show_coverage_path_checkbox.isChecked()
         ):
-            # Wenn show_coverage_path_checkbox aktiviert ist, deaktiviere show_agent_path_checkbox
+            # If show_coverage_path_checkbox is activated, deactivate show_agent_path_checkbox
             self.show_agent_path_checkbox.setChecked(False)
 
-        # Rufe die draw_grid-Funktion auf, um das Gitter neu zu zeichnen
+        # Call the startGrid function to redraw the grid
         self.startGrid()
 
-        # Rufe die draw_grid-Funktion auf, um das Gitter neu zu zeichnen
+        # Call the draw_grid function to redraw the path
         self.draw_grid()
 
     def draw_polygon_vertices(self, vertices):
@@ -396,13 +395,13 @@ class PolygonView(QMainWindow):
         explanation_dialog.exec_()
 
     def draw_polygons(self, polygons):
-        # Entferne zuerst alle alten Polygone, wenn sie existieren
+        # First remove all old polygons, if they exist
         if len(self.grid_items) > 0:
             for item in self.grid_items:
                 self.scene.removeItem(item)
             self.grid_items.clear()
 
-        # Zeichne die neuen Polygone, wenn die Checkbox aktiviert ist
+        # Draw the new polygons if the checkbox is activated
         if self.show_polygons_checkbox.isChecked():
             for polygon in polygons:
                 qpoly = QPolygonF()
@@ -415,9 +414,9 @@ class PolygonView(QMainWindow):
                 polygon_item.setPen(QPen(QColor(Qt.blue), 2))
                 polygon_item.setBrush(QBrush(QColor(0, 0, 255, 100)))
                 self.scene.addItem(polygon_item)
-                self.grid_items.append(polygon_item)  # Füge das Item zur Liste hinzu
+                self.grid_items.append(polygon_item)
 
-        # Rufe die draw_grid-Funktion auf, um das Gitter neu zu zeichnen
+        # Call the draw_grid function to redraw the grid
         self.draw_grid()
 
     def draw_polygon(self, vertices):
@@ -435,7 +434,7 @@ class PolygonView(QMainWindow):
 
     def draw_agent(self, agent):
         if agent is not None:
-            # Entferne den alten Agenten, falls vorhanden
+            # Remove the old agent, if available
             if self.agent_item is not None:
                 self.scene.removeItem(self.agent_item)
 
@@ -444,7 +443,7 @@ class PolygonView(QMainWindow):
             agent_width = agent.width * self.cell_size
             agent_height = agent.height * self.cell_size
 
-            # Zeichne den neuen Agenten
+            # Draw the new agent
             polyvertices = []
             polyvertices.append(QPointF(agent_x, agent_y))
             polyvertices.append(QPointF(agent_x + agent_width, agent_y))
@@ -456,7 +455,7 @@ class PolygonView(QMainWindow):
             polygon_item.setPen(QPen(QColor(Qt.green), 2))
             polygon_item.setBrush(QBrush(QColor(0, 255, 0, 100)))
             self.scene.addItem(polygon_item)
-            self.agent_item = polygon_item  # Aktualisiere self.agent_item
+            self.agent_item = polygon_item
 
         # Zeichne den Traktor
         # self.draw_tractor(agent)
@@ -469,15 +468,15 @@ class PolygonView(QMainWindow):
             self.timer.stop()
             return
 
-        # Holen Sie die aktuellen Koordinaten des Agenten aus dem Pfad
+        # Get the current coordinates of the agent from the path
         current_position = self.controller.model.agent_path.pop(0)
         current_x, current_y = current_position.x, current_position.y
 
-        # Entfernen Sie den aktuellen Agenten aus der Szene
+        # Remove the current agent from the scene
         if self.agent_item is not None:
             self.scene.removeItem(self.agent_item)
 
-        # Erstelle einen neuen Agenten an den neuen Koordinaten
+        # Create a new agent at the new coordinates
         self.controller.create_agent(
             self.controller.model.agent.width,
             self.controller.model.agent.height,
@@ -510,40 +509,40 @@ class WelcomeView(QWidget):
         label.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         self.layout.addWidget(label)
 
-        # Erstelle ein horizontales Layout für die linke und rechte Seite
+        # Create a horizontal layout for the left and right side
         horizontal_layout = QHBoxLayout()
 
-        # Linke Seite
+        # Left side
         left_widget = QWidget()
-        left_widget.setFixedWidth(500)  # Setze die gewünschte Breite
+        left_widget.setFixedWidth(500)
         left_layout = QVBoxLayout(left_widget)
         agent_inputs_label = QLabel("Agent-Inputs")
         agent_inputs_label.setAlignment(Qt.AlignHCenter)
         left_layout.addWidget(agent_inputs_label)
 
-        # Füge vier Inputs hinzu
+        # Add four inputs
         input_labels = ["Width:", "Height:", "X-Position:", "Y-Position:"]
         self.lineEdits = []
 
         for label_text in input_labels:
             left_layout.addWidget(QLabel(label_text))
             lineEdit = QLineEdit(left_widget)
-            # Eingabe auf ganze Zahlen beschränken
+            # Restrict input to whole numbers
             lineEdit.setValidator(QIntValidator())
             # Set the default value
             lineEdit.setText("2")
             self.lineEdits.append(lineEdit)
             left_layout.addWidget(lineEdit)
 
-        # Rechte Seite
+        # right side
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         control_label = QLabel("Controls")
         control_label.setAlignment(Qt.AlignHCenter)
         right_layout.addWidget(control_label)
-        right_widget.setFixedWidth(500)  # Setze die gewünschte Breite
+        right_widget.setFixedWidth(500)
 
-        # Füge Erklärungen für die Steuerung hinzu
+        # Add explanations for the controls
         control_layouts = [
             "Draw Polygon with Mouse",
             "Click X to change the Agent-Infos",
@@ -553,11 +552,11 @@ class WelcomeView(QWidget):
         for control_text in control_layouts:
             right_layout.addWidget(QLabel(control_text))
 
-        # Füge die linken und rechten Widgets zum horizontalen Layout hinzu
+        # Add the left and right widgets to the horizontal layout
         horizontal_layout.addWidget(left_widget)
         horizontal_layout.addWidget(right_widget)
 
-        # Füge das horizontale Layout zum Hauptlayout hinzu
+        # Add the horizontal layout to the main layout
         self.layout.addLayout(horizontal_layout)
 
         start_button = QPushButton("Start")
@@ -568,19 +567,17 @@ class WelcomeView(QWidget):
 
         self.setLayout(self.layout)
 
-        # Setze die gewünschte Größe für das Welcome-Fenster
         self.resize(1200, 600)
 
     def start_pathplanning(self):
-        # Extrahiere die Werte aus den LineEdits
+        # Extract the values from the LineEdits
         agent_width_text = self.lineEdits[0].text()
         agent_height_text = self.lineEdits[1].text()
         agent_x_text = self.lineEdits[2].text()
         agent_y_text = self.lineEdits[3].text()
 
-        # Überprüfe, ob alle Eingaben vorhanden sind
+        # Check whether all entries are available
         if all([agent_width_text, agent_height_text, agent_x_text, agent_y_text]):
-            # Wenn alle Eingaben vorhanden sind, konvertiere sie in Ganzzahlen
             agent_width = int(agent_width_text)
             agent_height = int(agent_height_text)
             agent_x = int(agent_x_text)

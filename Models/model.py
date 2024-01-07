@@ -15,7 +15,7 @@ class Model:
         self.coverage_path = []
         self.agent_path = []
         self.isinfield = False
-        self.shapely_polygon = None  # Hinzugefügtes Attribut für das shapely Polygon
+        self.shapely_polygon = None
         self.reset_model()
 
     def create_agent(self, width, height, x, y):
@@ -86,7 +86,7 @@ class Model:
     def generate_waypoints(self):
         self.coverage_path = []
 
-        # Sortiere die Rechtecke nach Y und dann nach X
+        # Sort the rectangles by Y and then by X
         sorted_rects = sorted(self.grid, key=lambda r: (r.bounds[1], r.bounds[0]))
 
         current_y = None
@@ -107,7 +107,7 @@ class Model:
             else:
                 row_rects.append(rect)
 
-        # Verarbeite die letzte Zeile
+        # Process the last line
         if row_rects:
             self.process_row(row_rects, reverse)
 
@@ -119,13 +119,13 @@ class Model:
             if reverse:
                 row_rects.reverse()
 
-            # Füge den Anfangspunkt der Zeile hinzu
+            # Add the starting point of the line
             first_rect = row_rects[0]
             self.coverage_path.append(
                 geom.Point(first_rect.bounds[0], first_rect.bounds[1])
             )
 
-            # Füge den Endpunkt der Zeile hinzu
+            # Add the end point of the line
             last_rect = row_rects[-1]
             self.coverage_path.append(
                 geom.Point(last_rect.bounds[0], last_rect.bounds[1])
@@ -157,7 +157,6 @@ class Model:
                 break
 
             for next in self.get_neighbors(current):
-                # oder eine spezifische Kostenfunktion
                 new_cost = cost_so_far[current] + self.heuristic(current, next)
                 if next not in cost_so_far or new_cost < cost_so_far[next]:
                     cost_so_far[next] = new_cost
@@ -165,12 +164,12 @@ class Model:
                     heapq.heappush(frontier, (priority, next))
                     came_from[next] = current
 
-        # Rekonstruieren Sie den Pfad von start zu goal
+        # Reconstruct the path from start to goal
         path = []
         while current != start:
             path.append(geom.Point(current[0], current[1]))
             current = came_from[current]
-        path.reverse()  # optional
+        path.reverse()
 
         return path
 
@@ -185,7 +184,7 @@ class Model:
                 (1, 1),
                 (-1, 1),
                 (1, -1),
-            ]  # Erweiterte 8-Wege-Nachbarschaft
+            ]  # Extended 8-way neighbourhood
             neighbors = []
 
             for direction in directions:

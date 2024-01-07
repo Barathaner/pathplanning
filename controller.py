@@ -30,7 +30,7 @@ class PolygonController:
 
     def handle_enter_pressed(self):
         if isinstance(self.view, WelcomeView):
-            # Rufen Sie die Methode in WelcomeView auf, um das Pathplanning zu starten
+            # Call the method in WelcomeView to start pathplanning
             self.view.start_pathplanning()
 
         elif isinstance(self.view, PolygonView):
@@ -48,25 +48,28 @@ class PolygonController:
             self.view.draw_path(path_to_draw)
 
     def start_pathplanning(self, agent_width, agent_height, agent_x, agent_y):
-        # Erstelle den PolygonController und die PolygonView
+        # Create the PolygonController and the PolygonView
         polygon_controller = PolygonController(self.model, None)
         polygon_view = PolygonView(polygon_controller)
         polygon_controller.view = polygon_view
-        # Zeige die PolygonView an
+        # Show the PolygonView
         polygon_view.show()
-        # Schließe die WelcomeView
+        # Close the WelcomeView
         self.view.close()
 
-        # Überprüfen Sie, ob alle Eingaben vollständig sind, bevor Sie den Agenten erstellen und zeichnen
+        # Check that all entries are complete before creating and drawing the agent
         if agent_width != 0 or agent_height != 0:
             agent_width = int(agent_width)
             agent_height = int(agent_height)
             agent_x = int(agent_x)
             agent_y = int(agent_y)
 
-            # Erstellen und Zeichnen des Agenten in der PolygonView
+            # Creating and drawing the agent in the PolygonView
             polygon_controller.create_agent(agent_width, agent_height, agent_x, agent_y)
             polygon_view.draw_agent(polygon_controller.model.agent)
 
-        # Zeige die PolygonView an
+        # Show the PolygonView
         polygon_view.show()
+
+    def get_agent_path(self):
+        return self.model.agent_path
