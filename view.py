@@ -1,9 +1,7 @@
 from PyQt5.QtWidgets import (
-    QGraphicsRectItem,
     QGraphicsScene,
     QGraphicsView,
     QMainWindow,
-    QApplication,
     QDialog,
     QVBoxLayout,
     QLabel,
@@ -18,12 +16,10 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QHBoxLayout,
     QCheckBox,
-    QGraphicsPixmapItem,
     QShortcut,
 )
-from PyQt5.QtCore import Qt, QPointF, QTimer, QCoreApplication, QRectF
+from PyQt5.QtCore import Qt, QPointF, QTimer, QCoreApplication
 from PyQt5.QtGui import *
-from shapely.geometry import Point
 
 
 class AgentInputDialog(QDialog):
